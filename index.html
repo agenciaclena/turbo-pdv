@@ -149,10 +149,11 @@ iframe{width:100%;height:100%;border:none}
 </div>
 
 <script>
-const sb = supabasejs.createClient(
-  "https://rejjsqitgzxwjqakqbt.supabase.co",
-  "sb_publishable_pAb181wK7YaT0RSB20u3RQ_qOiqCh81"
-);
+  // ✅ SDK v2 expõe "supabase" global
+  const sb = supabase.createClient(
+    "https://rejjsqitgzxwjqakqbt.supabase.co",
+    "sb_publishable_pAb181wK7YaT0RSB20u3RQ_qOiqCh81"
+  );
 
   function showApp(){
     document.getElementById("loginWrap").style.display = "none";
