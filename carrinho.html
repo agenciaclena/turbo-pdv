@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+<title>Carrinho</title>
+
+  
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+/* HEADER */
+.header{
+  position:sticky;top:0;z-index:5;
+  background:#fff;
+  padding:14px;
+  display:flex;align-items:center;gap:10px;
+  font-weight:800;
+  border-bottom:1px solid var(--border);
+}
+
+/* CONTAINER */
+.container{padding:14px;padding-bottom:160px}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+}
+
+/* ENDEREÇO */
+.endereco-title{font-weight:800;font-size:14px;margin-bottom:6px}
+.endereco-text{font-size:13px;color:var(--muted);line-height:1.4}
+
+/* ITEM */
+.item{display:flex;gap:12px}
+.item-img{
+  width:64px;height:64px;border-radius:12px;
+  object-fit:cover;background:#eee;flex-shrink:0
+}
+.item-info{flex:1}
+.item-nome{font-weight:800;font-size:14px;margin-bottom:2px}
+.item-preco{font-weight:700;font-size:13px;color:var(--muted)}
+
+.item-controls{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+}
+
+.qty{
+  display:flex;align-items:center;gap:10px
+}
+.qty button{
+  width:30px;height:30px;border:none;
+  border-radius:50%;background:#f3f4f6;font-weight:800
+}
+.qty span{font-weight:800;min-width:20px;text-align:center}
+
+.item-total{font-weight:800;font-size:14px}
+
+/* EXCLUIR */
+.remove-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:8px;
+}
+.remove{
+  font-size:12px;
+  color:#ef4444;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--border);
+  padding:14px;
+}
+.total{font-weight:800;font-size:16px;margin-bottom:12px}
+.btn{
+  width:100%;padding:16px;border:none;
+  border-radius:999px;background:var(--primary);
+  color:#fff;font-weight:800;font-size:15px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;
+  z-index:99;
+}
+.modal-box{
+  background:#fff;border-radius:18px;
+  width:90%;max-width:360px;
+  padding:16px;
+}
+.modal-title{
+  font-weight:800;font-size:16px;margin-bottom:10px;
+}
+.modal-item{display:flex;gap:10px;margin-bottom:14px}
+.modal-item img{
+  width:60px;height:60px;border-radius:12px;
+  object-fit:cover;background:#eee
+}
+.modal-actions{
+  display:flex;gap:10px
+}
+.btn-sec{
+  flex:1;padding:12px;border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;font-weight:700
+}
+.btn-danger{
+  flex:1;padding:12px;border-radius:999px;
+  border:none;background:#ef4444;
+  color:#fff;font-weight:800
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <span onclick="history.back()">←</span>
+  Carrinho
+</div>
+
+<div class="container" id="conteudo"></div>
+
+<div class="footer">
+  <div class="total" id="total">Total: R$ 0,00</div>
+  <button class="btn" onclick="finalizarCompra()">Finalizar compra</button>
+</div>
+
+<!-- MODAL EXCLUIR -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-title">Excluir item?</div>
+    <div class="modal-item">
+      <img id="mFoto">
+      <div>
+        <strong id="mNome"></strong><br>
+        <span id="mPreco"></span><br>
+        <span id="mQtd"></span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-danger" onclick="confirmarExclusao()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* SUPABASE */
+const sb = supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+/* HELPERS */
+const moeda = v => v.toLocaleString("pt-BR",{minimumFractionDigits:2});
+
+/* PARAMS */
+let lojaId =
+  new URLSearchParams(location.search).get("l") ||
+  localStorage.getItem("LOJA_ATUAL");
+
+if (!lojaId) {
+  alert("Loja não identificada");
+  throw new Error("Loja não identificada");
+}
+const KEY = "carrinho_" + lojaId;
+if (!location.search.includes("l=")) {
+  history.replaceState(
+    null,
+    "",
+    location.pathname + "?l=" + lojaId
+  );
+}
+
+let carrinho = JSON.parse(localStorage.getItem(KEY)) || [];
+
+let cliente = JSON.parse(localStorage.getItem("CLIENTE_LOJA"));
+let produtosMap = {};
+let idxExcluir = null;
+
+/* ELEMENTOS */
+const conteudo = document.getElementById("conteudo");
+const totalEl = document.getElementById("total");
+
+/* BUSCAR IMAGENS */
+async function carregarProdutos(){
+const ids = carrinho.map(i => i.produto_id);
+  if(!ids.length) return;
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("id,imagem_url")
+    .in("id", ids);
+  data?.forEach(p => produtosMap[p.id] = p.imagem_url);
+}
+
+/* MODAL */
+function abrirModal(idx){
+  idxExcluir = idx;
+const i = carrinho[idx];
+mFoto.src = i.imagem || produtosMap[i.produto_id] || "https://via.placeholder.com/200";
+  mNome.innerText = i.nome;
+  mPreco.innerText = "Preço: R$ " + moeda(i.preco);
+  mQtd.innerText = "Quantidade: " + i.quantidade;
+  modal.style.display = "flex";
+}
+function fecharModal(){
+  modal.style.display = "none";
+}
+function confirmarExclusao(){
+carrinho.splice(idxExcluir, 1);
+  salvar();
+  fecharModal();
+}
+
+/* RENDER */
+function render(){
+if(!carrinho.length){
+    conteudo.innerHTML = "<p style='text-align:center;color:#666'>Carrinho vazio</p>";
+    totalEl.innerText = "Total: R$ 0,00";
+    return;
+  }
+
+  let total = 0;
+
+  conteudo.innerHTML = `
+    <div class="card">
+      <div class="endereco-title">Entrega</div>
+      <div class="endereco-text">
+        ${cliente?.rua || ""}, ${cliente?.numero || ""}<br>
+        ${cliente?.bairro || ""} – ${cliente?.cidade || ""}/${cliente?.uf || ""}
+      </div>
+    </div>
+
+${carrinho.map((i,idx)=>{
+      total += i.preco * i.quantidade;
+      return `
+        <div class="card">
+          <div class="item">
+<img class="item-img" src="${i.imagem || produtosMap[i.produto_id] || 'https://via.placeholder.com/200'}">
+            <div class="item-info">
+              <div class="item-nome">${i.nome}</div>
+<div class="item-preco">
+  ${
+    i.promocao_ativa && i.preco_original
+      ? `
+        <span class="old">
+          R$ ${moeda(Number(i.preco_original))}
+        </span>
+        <span style="color:var(--primary)">
+          R$ ${moeda(Number(i.preco))}
+        </span>
+      `
+      : `
+        R$ ${moeda(Number(i.preco))}
+      `
+  }
+</div>
+
+              <div class="item-controls">
+                <div class="qty">
+                  <button onclick="menos(${idx})">−</button>
+                  <span>${i.quantidade}</span>
+                  <button onclick="mais(${idx})">+</button>
+                </div>
+                <div class="item-total">R$ ${moeda(i.preco*i.quantidade)}</div>
+              </div>
+
+              <div class="remove-row">
+                <span class="remove" onclick="abrirModal(${idx})">Excluir item</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("")}
+  `;
+
+  totalEl.innerText = "Total: R$ " + moeda(total);
+}
+
+/* AÇÕES */
+function salvar(){
+  localStorage.setItem(KEY, JSON.stringify(carrinho));
+  render();
+}
+function mais(i){
+  carrinho[i].quantidade++;
+  salvar();
+}
+function menos(i){
+  if(--carrinho[i].quantidade <= 0){
+    abrirModal(i);
+  } else {
+    salvar();
+  }
+}
+
+async function finalizarCompra(){
+  try{
+
+    if (!lojaId) {
+      alert("Loja inválida");
+      return;
+    }
+
+    if (!cliente?.nome || !cliente?.whatsapp) {
+      alert("Complete seus dados antes de finalizar");
+      return;
+    }
+
+    if (!carrinho.length) {
+      alert("Carrinho vazio");
+      return;
+    }
+
+    const payload = {
+      loja_id: lojaId,
+      cliente: {
+        nome: cliente.nome,
+        whatsapp: cliente.whatsapp
+      },
+      itens: carrinho.map(i => ({
+        id: i.produto_id,
+        quantidade: i.quantidade
+      }))
+    };
+
+    const res = await fetch("https://www.clena.com.br/api/create-pagamento",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if(data?.init_point){
+      localStorage.removeItem(KEY);
+      location.href = data.init_point;
+      return;
+    }
+
+const loja = await buscarLoja();
+await registrarPedidoOffline(loja);
+abrirPix(loja);
+;
+
+  }catch(err){
+console.error("Erro pagamento:", err);
+const loja = await buscarLoja();
+await registrarPedidoOffline(loja);
+abrirPix(loja);
+
+  }
+}
+
+
+
+/* INIT */
+(async()=>{
+  await carregarProdutos();
+  render();
+})();
+async function buscarLoja(){
+  const { data, error } = await sb
+    .from("user_profile")
+    .select("whatsapp, negocio")
+    .eq("user_id", lojaId)
+    .single();
+
+  if(error) throw error;
+  return data;
+}
+
+let lojaPix = null;
+
+function abrirPix(loja){
+  lojaPix = loja;
+
+  pixChave.innerText = loja.whatsapp;
+  pixValor.innerText = totalEl.innerText.replace("Total: ","");
+
+  modalPix.style.display = "flex";
+}
+
+function fecharPix(){
+  modalPix.style.display = "none";
+}
+
+function copiarPix(){
+  navigator.clipboard.writeText(lojaPix.whatsapp);
+  alert("Chave PIX copiada");
+}
+
+function enviarComprovante(){
+  const valor = pixValor.innerText;
+  const msg = encodeURIComponent(
+    `Olá! Fiz o PIX no valor de ${valor}.\nSegue o comprovante do pedido.`
+  );
+
+  const numero = lojaPix.whatsapp.replace(/\D/g,"");
+
+window.open(`https://wa.me/${numero}?text=${msg}`, "_blank");
+}
+async function registrarPedidoOffline(loja){
+  try{
+    const total = carrinho.reduce(
+      (s,i)=> s + (i.preco * i.quantidade), 0
+    );
+
+    const payload = {
+      loja_id: lojaId,
+      loja_nome: loja.negocio || null,
+
+      cliente_nome: cliente.nome,
+      cliente_whatsapp: cliente.whatsapp,
+
+      itens: carrinho.map(i => ({
+        produto_id: i.produto_id,
+        nome: i.nome,
+        quantidade: i.quantidade,
+        preco_unitario: i.preco,
+        subtotal: i.preco * i.quantidade
+      })),
+
+      total,
+      status: "pendente_pagamento",
+      origem: "pix_fallback"
+    };
+
+    await sb
+      .from("pedidos_offline")
+      .insert(payload);
+
+  }catch(err){
+    console.error("Erro ao registrar pedido offline:", err);
+    // ❗ não bloqueia o fluxo do cliente
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</script>
+<!-- MODAL PIX -->
+<div class="modal" id="modalPix">
+  <div class="modal-box">
+
+    <div class="modal-title">Pagamento via PIX</div>
+
+    <p style="font-size:14px;color:#555;margin-bottom:12px">
+      Finalize o pagamento via PIX e envie o comprovante para a loja.
+    </p>
+
+    <div class="card" style="margin-bottom:12px">
+      <strong>Valor total</strong>
+      <div id="pixValor" style="font-size:18px;font-weight:800;margin-top:4px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <strong>Chave PIX (WhatsApp)</strong>
+      <div id="pixChave"
+        style="font-weight:800;font-size:15px;margin-top:6px">
+      </div>
+
+      <button class="btn-sec" style="margin-top:10px" onclick="copiarPix()">
+        Copiar chave PIX
+      </button>
+    </div>
+
+    <button class="btn" onclick="enviarComprovante()"
+      style="display:flex;align-items:center;justify-content:center;gap:8px">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+           width="20">
+      Enviar comprovante
+    </button>
+
+    <button class="btn-sec" style="margin-top:10px" onclick="fecharPix()">
+      Cancelar
+    </button>
+
+  </div>
+</div>
+
+</body>
+</html>

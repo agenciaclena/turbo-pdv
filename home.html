@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+<title>Home • Clena Store</title>
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:16px;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body{
+  width:100vw;
+  max-width:100vw;
+  height:100%;
+  overflow-x:hidden !important;
+  overscroll-behavior: none;
+}
+
+/* SCROLL APENAS VERTICAL, SEM BARRA */
+body{
+  background:var(--bg);
+  overflow-y:auto;
+  scrollbar-width:none; /* Firefox */
+}
+body::-webkit-scrollbar{
+  display:none; /* Chrome / Safari */
+}
+
+/* CONTAINER REAL DO APP */
+.app{
+  width:100%;
+  max-width:100vw;
+  padding:16px;
+}
+
+/* ================= HEADER ================= */
+.header{
+  margin-bottom:16px;
+}
+.header h1{
+  font-size:20px;
+  font-weight:800;
+}
+.header span{
+  color:var(--primary);
+}
+
+/* ================= KPIs ================= */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:12px;
+  margin-bottom:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  position:relative;
+  overflow:hidden; /* evita vazamento */
+}
+
+.card small{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+.card h2{
+  font-size:20px;
+  margin-top:4px;
+  font-weight:800;
+}
+
+.card i{
+  position:absolute;
+  bottom:12px;
+  right:12px;
+  font-size:22px;
+  color:var(--primary);
+  opacity:.85;
+}
+
+/* ================= LISTAS ================= */
+.list{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  margin-bottom:16px;
+}
+
+.list h3{
+  font-size:14px;
+  margin-bottom:12px;
+}
+
+.item{
+  padding:14px;
+  border-radius:14px;
+  background:#f9fafb;
+  margin-bottom:12px;
+  display:flex;
+  align-items:flex-start; /* 🔥 importante */
+  gap:12px;
+  font-size:13px;
+}
+
+
+.item span{
+  flex:1;
+  white-space:normal;    
+  overflow:visible;
+  line-height:1.45;
+}
+
+
+.badge{
+  background:#fff7ed;
+  color:var(--primary);
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
+}
+.badge.confirmado{
+  background:#ecfeff;
+  color:#0891b2;
+}
+
+.badge.concluido{
+  background:#ecfdf5;
+  color:#16a34a;
+}
+
+.badge.cancelado{
+  background:#fef2f2;
+  color:#dc2626;
+}
+
+
+
+  
+.empty{
+  color:var(--muted);
+  text-align:center;
+  padding:16px;
+  font-size:13px;
+}
+
+.agenda-card{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  gap:12px;
+  padding:12px;
+  border-radius:14px;
+  background:#f9fafb;
+  margin-bottom:10px;
+  align-items:center;
+}
+/* CARD DE AGENDAMENTO (AGENDA DO DIA) */
+.agenda-item{
+  display:grid;
+  grid-template-columns:64px 1fr auto;
+  gap:14px;
+  align-items:center;
+
+  background:#ffffff;
+  border-radius:16px;
+  padding:14px;
+
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+  border:1px solid #f1f5f9;
+
+  margin-bottom:14px; /* 🔥 separação bonita */
+}
+
+/* COLUNA DA HORA */
+.agenda-hora{
+  width:64px;
+  height:64px;
+  border-radius:14px;
+  background:#f8fafc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:15px;
+  color:var(--primary);
+}
+
+/* INFO */
+.agenda-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.agenda-info strong{
+  font-size:14px;
+  font-weight:800;
+}
+
+.agenda-info .servico{
+  font-size:13px;
+  color:#111;
+}
+
+.agenda-info .valor{
+  font-size:13px;
+  font-weight:700;
+  color:#16a34a;
+}
+
+.agenda-info .cliente{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* AÇÕES */
+.agenda-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.agenda-actions select{
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-weight:600;
+}
+
+.agenda-actions a{
+  background:#dcfce7;
+  color:#166534;
+  text-align:center;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.servico-img{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee;
+}
+
+.agenda-info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.servico-nome{
+  font-size:13px;
+  font-weight:700;
+}
+
+.servico-valor{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.cliente-nome{
+  font-size:12px;
+  color:#111;
+}
+
+.agenda-actions{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.btn{
+  border:none;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn.confirmado{background:#ecfeff;color:#0891b2;}
+.btn.concluido{background:#ecfdf5;color:#16a34a;}
+.btn.cancelado{background:#fef2f2;color:#dc2626;}
+
+.btn.whatsapp{
+  background:#dcfce7;
+  color:#15803d;
+}
+.card{
+  cursor:pointer;
+}
+.card:active{
+  transform:scale(0.97);
+}
+.main-content{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.list{
+  margin-bottom:0;
+}
+#btnNovoAgendamento{
+  position:fixed;
+  right:18px;
+  bottom:22px;
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  box-shadow:0 18px 36px rgba(0,0,0,.35);
+  font-size:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  cursor:pointer;
+}
+#btnNovoAgendamento:active{
+  transform:scale(.94);
+}
+/* ÍCONE DE HISTÓRICO */
+.info-btn{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#fff7ed;
+  color:#ff6a00;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:13px;
+  cursor:pointer;
+  border:1px solid #fed7aa;
+  flex-shrink:0;
+}
+
+/* MODAL HISTÓRICO */
+#historicoModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:200000;
+}
+
+#historicoModal .modal-box{
+  width:100%;
+  height:60%;
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  padding:16px;
+  box-shadow:0 -14px 40px rgba(0,0,0,.25);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.historico-item{
+  background:#f9fafb;
+  border-radius:14px;
+  padding:12px;
+  font-size:13px;
+}
+
+.historico-item strong{
+  display:block;
+  font-size:14px;
+}
+.btn-suporte{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#dcfce7;
+  color:#166534;
+  font-size:12px;
+  font-weight:800;
+  text-decoration:none;
+  white-space:nowrap;
+}
+
+.btn-suporte i{
+  font-size:16px;
+}
+.btn-dia{
+  border:none;
+  background:#f1f5f9;
+  color:#111;
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn-dia:active{
+  transform:scale(.92);
+}
+
+/* ===== CREDIÁRIO (visual laranja) ===== */
+.agenda-item.crediario{
+  border-color:#fed7aa;
+  background:linear-gradient(180deg,#fff7ed,#ffffff);
+}
+.agenda-item.crediario .agenda-hora{
+  background:#ffedd5;
+  color:#9a3412;
+}
+.agenda-item.crediario .valor{
+  color:#f97316;
+}
+.badge.crediario{
+  background:#ffedd5;
+  color:#9a3412;
+}
+
+  
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <h1>Bem-vindo à <span>Clena Store</span></h1>
+  </div>
+
+<!-- KPIs -->
+<div class="grid">
+
+  <div class="card">
+    <small>Agendamentos do dia</small>
+    <h2 id="kpiHoje">0</h2>
+    <i class="ri-calendar-check-line"></i>
+  </div>
+
+  <div class="card" onclick="abrirClientes()">
+    <small>Cadastros</small>
+    <h2 id="kpiClientes">0</h2>
+    <i class="ri-user-3-line"></i>
+  </div>
+
+  <div class="card" onclick="abrirFaturamentoMes()">
+    <small>Faturamento mês</small>
+    <h2 id="kpiFaturamento">R$ 0</h2>
+    <i class="ri-currency-line"></i>
+  </div>
+
+  <div class="card" onclick="abrirServicos()">
+    <small>Serviços ativos</small>
+    <h2 id="kpiServicos">0</h2>
+    <i class="ri-scissors-line"></i>
+  </div>
+
+</div> <!-- ✅ FECHAMENTO CORRETO -->
+
+
+<div class="main-content">
+
+  <div class="list">
+<div style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+">
+  <h3 id="tituloAgenda"></h3>
+
+  <div style="display:flex;gap:6px">
+    <button class="btn-dia" onclick="mudarDia(-1)">‹</button>
+    <button class="btn-dia" onclick="mudarDia(1)">›</button>
+  </div>
+</div>
+
+    <div id="agendaHoje"></div>
+  </div>
+<div class="list">
+  <h3>Avisos</h3>
+
+  <!-- AVISO IMPORTANTE -->
+  <div class="item">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span>
+        Você faz parte de um grupo selecionado para usar esta ferramenta.
+        Ficamos felizes em te ter aqui e esperamos atender todas as expectativas.
+        Estamos empenhados em melhorar ainda mais sua experiência,
+        por esse motivo haverá constantes atualizações.
+      </span>
+    </div>
+
+    <span class="badge">Parabéns</span>
+  </div>
+
+  <!-- AVISO SUPORTE -->
+  <div class="item">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span>
+        Qualquer instabilidade ou possíveis perdas de conteúdo,
+        acione nosso suporte. Se possível, envie prints para
+        entendermos o ocorrido e solucionarmos.
+      </span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+      <span class="badge">Participe</span>
+
+      <a
+        class="btn-suporte"
+        href="https://wa.me/5577998253249?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20na%20Clena%20Store.%20Estou%20enfrentando%20uma%20instabilidade%20ou%20perda%20de%20dados.%20Posso%20enviar%20prints%20para%20ajudar%20na%20an%C3%A1lise."
+        target="_blank"
+      >
+        <i class="ri-whatsapp-line"></i>
+        SUPORTE
+      </a>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+
+<script>
+let dataAtual = new Date();
+
+function dataISO(d){
+  return d.toLocaleDateString("en-CA");
+}
+function mudarDia(direcao){
+  dataAtual.setDate(dataAtual.getDate() + direcao);
+
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session){
+      carregarAgendaDia(session.user.id);
+    }
+  });
+}
+
+const sbHome = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+async function carregarHome(){
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const hoje = new Date().toLocaleDateString("en-CA");
+  const inicioMes = new Date();
+  inicioMes.setDate(1);
+  const inicio = inicioMes.toLocaleDateString("en-CA");
+
+  const { count: qtdHoje } = await sbHome
+    .from("agendamentos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("data", hoje)
+    .neq("status","CANCELADO");
+
+  document.getElementById("kpiHoje").innerText = qtdHoje || 0;
+
+  const { count: qtdClientes } = await sbHome
+    .from("clientes_loja")
+    .select("*", { count:"exact", head:true })
+    .eq("loja_id", lojaId);
+
+  document.getElementById("kpiClientes").innerText = qtdClientes || 0;
+
+  const { count: qtdServicos } = await sbHome
+    .from("produtos_servicos")
+    .select("*", { count:"exact", head:true })
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO");
+
+  document.getElementById("kpiServicos").innerText = qtdServicos || 0;
+
+const { data: faturamento } = await sbHome
+  .from("agendamentos")
+  .select("valor_total")
+  .eq("user_id", lojaId)
+  .gte("data", inicio)
+  .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
+const total = faturamento?.reduce(
+  (s,v)=>s+Number(v.valor_total||0),0
+) || 0;
+
+
+  document.getElementById("kpiFaturamento").innerText =
+    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+  await carregarAgendaDia(lojaId);
+}
+
+carregarHome();
+
+/* swipe dias */
+let startX = 0;
+document.addEventListener("touchstart",e=>{
+  startX = e.touches[0].clientX;
+});
+document.addEventListener("touchend",e=>{
+  const diff = e.changedTouches[0].clientX - startX;
+  if(Math.abs(diff)<60) return;
+  dataAtual.setDate(dataAtual.getDate() + (diff<0?1:-1));
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session) carregarAgendaDia(session.user.id);
+  });
+});
+
+async function carregarAgendaDia(lojaId){
+
+  const data = dataISO(dataAtual);
+
+  // título
+  document.getElementById("tituloAgenda").innerText =
+    "Agenda • " + dataAtual.toLocaleDateString("pt-BR");
+
+  // 1️⃣ BUSCA AGENDAMENTOS
+  const { data: agenda, error } = await sbHome
+    .from("agendamentos")
+.select(`
+  id,
+  data,
+  hora_inicio,
+  cliente_nome,
+  cliente_whatsapp,
+  status,
+  servico_nome,
+  servicos,
+  valor_total,
+  created_at,
+  updated_at
+`)
+
+
+    .eq("user_id", lojaId)
+    .eq("data", data)
+    .neq("status", "CANCELADO")
+    .order("hora_inicio");
+
+  const box = document.getElementById("agendaHoje");
+  box.innerHTML = "";
+
+  if(error || !agenda || agenda.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum horário</div>`;
+    document.getElementById("kpiHoje").innerText = 0;
+    return;
+  }
+
+ 
+
+agenda.forEach(a => {
+
+  const hora = a.hora_inicio?.slice(0,5);
+
+  const nomesServicos = Array.isArray(a.servicos)
+    ? a.servicos.map(s => s.nome).join(", ")
+    : "Serviço";
+
+  const valor = Number(a.valor_total || 0).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
+  });
+
+  const whatsapp = a.cliente_whatsapp
+    ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+    : "#";
+
+box.innerHTML += `
+  <div class="agenda-item ${a.status === "CREDIARIO" ? "crediario" : ""}">
+
+    <div class="agenda-hora">
+      ${hora}
+    </div>
+
+<div class="agenda-info">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="info-btn"
+      onclick='abrirHistorico(${JSON.stringify(a)})'>
+      !
+    </div>
+    <strong>${nomesServicos}</strong>
+  </div>
+
+  <div class="valor">${valor}</div>
+  <div class="cliente">${a.cliente_nome}</div>
+</div>
+
+
+    <div class="agenda-actions">
+      <a href="${whatsapp}" target="_blank">Whats</a>
+
+<select onchange="alterarStatus('${a.id}', this.value)">
+  <option value="CONFIRMADO" ${a.status==="CONFIRMADO"?"selected":""}>CONFIRMADO</option>
+  <option value="CREDIARIO" ${a.status==="CREDIARIO"?"selected":""}>CREDIÁRIO</option>
+  <option value="CONCLUIDO" ${a.status==="CONCLUIDO"?"selected":""}>CONCLUÍDO</option>
+  <option value="CANCELADO" ${a.status==="CANCELADO"?"selected":""}>CANCELADO</option>
+</select>
+    </div>
+
+  </div>
+`;
+
+});
+
+
+  // KPI acompanha o dia
+  document.getElementById("kpiHoje").innerText = agenda.length;
+}
+
+async function alterarStatus(id, status) {
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if (!session) return;
+
+  const { error } = await sbHome
+    .from("agendamentos")
+    .update({ status })
+.eq("id", id)
+.eq("user_id", session.user.id);
+
+
+  if (error) {
+    alert("Erro ao alterar status");
+    console.error(error);
+    return;
+  }
+
+  carregarAgendaDia(session.user.id);
+}
+async function carregarCalendarioFaturamento(){
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+
+  const inicioMes = new Date(ano, mes, 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(ano, mes + 1, 0).toLocaleDateString("en-CA");
+
+  // 🔹 BUSCA AGENDAMENTOS CONFIRMADOS E CONCLUÍDOS
+  const { data: agendamentos } = await sbHome
+    .from("agendamentos")
+    .select("data, valor_total")
+    .eq("user_id", lojaId)
+    .gte("data", inicioMes)
+    .lte("data", fimMes)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
+  // 🔹 AGRUPA POR DIA
+  const resumo = {};
+  agendamentos?.forEach(a=>{
+    if(!resumo[a.data]){
+      resumo[a.data] = { qtd:0, total:0 };
+    }
+    resumo[a.data].qtd++;
+    resumo[a.data].total += Number(a.valor_total||0);
+  });
+
+  const calendario = document.getElementById("calendarioFaturamento");
+  calendario.innerHTML = "";
+
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+  for(let dia=1; dia<=diasNoMes; dia++){
+
+    const data = new Date(ano, mes, dia).toLocaleDateString("en-CA");
+    const info = resumo[data];
+
+    calendario.innerHTML += `
+      <div
+        ${info ? `onclick="abrirResumoDia('${data}')"` : ""}
+        style="
+          background:#fff;
+          border-radius:14px;
+          padding:8px;
+          box-shadow:0 4px 10px rgba(0,0,0,.05);
+          min-height:74px;
+          display:flex;
+          flex-direction:column;
+          justify-content:space-between;
+          ${info ? "cursor:pointer" : ""}
+        "
+      >
+        <strong style="font-size:12px">${dia}</strong>
+
+        ${
+          info ? `
+            <small style="font-size:11px;color:#2563eb">
+              ${info.qtd} atend.
+            </small>
+            <small style="font-size:11px;font-weight:700;color:#16a34a">
+              ${info.total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+            </small>
+          ` : `
+            <small style="font-size:11px;color:#9ca3af">—</small>
+          `
+        }
+      </div>
+    `;
+  }
+}
+
+
+async function carregarServicos(){
+
+  const { data:{ session } } = await sbHome.auth.getSession();
+  if(!session) return;
+
+  const lojaId = session.user.id;
+
+  const { data: servicos, error } = await sbHome
+    .from("produtos_servicos")
+    .select("id, nome, preco, imagem_url")
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "SERVICO")
+    .order("nome");
+
+  const box = document.getElementById("listaServicos");
+  box.innerHTML = "";
+
+  if(error || !servicos || servicos.length === 0){
+    box.innerHTML = `<div class="empty">Nenhum serviço ativo</div>`;
+    return;
+  }
+
+  servicos.forEach(s => {
+
+    const valor = Number(s.preco||0).toLocaleString("pt-BR",{
+      style:"currency",
+      currency:"BRL"
+    });
+
+    box.innerHTML += `
+      <div style="
+        display:grid;
+        grid-template-columns:56px 1fr auto;
+        gap:12px;
+        align-items:center;
+        background:#f9fafb;
+        border-radius:14px;
+        padding:10px;
+        margin-bottom:10px;
+      ">
+
+        <img
+          src="${s.imagem_url || 'https://via.placeholder.com/56'}"
+          style="width:56px;height:56px;border-radius:12px;object-fit:cover"
+        />
+
+        <div style="display:flex;flex-direction:column">
+          <strong style="font-size:13px">${s.nome}</strong>
+          <small style="color:#16a34a;font-weight:700">${valor}</small>
+        </div>
+
+        <i class="ri-check-line" style="color:#22c55e;font-size:18px"></i>
+      </div>
+    `;
+  });
+}
+
+</script>
+<script>
+function abrirClientes(){
+  document.getElementById("clientesModal").style.display = "flex";
+}
+
+function fecharClientes(){
+  document.getElementById("clientesModal").style.display = "none";
+}
+
+function abrirFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "flex";
+  carregarCalendarioFaturamento();
+}
+
+function fecharFaturamentoMes(){
+  document.getElementById("faturamentoModal").style.display = "none";
+}
+function abrirServicos(){
+  document.getElementById("servicosModal").style.display = "flex";
+  carregarServicos();
+}
+
+function fecharServicos(){
+  document.getElementById("servicosModal").style.display = "none";
+}
+function abrirNovoAgendamento(){
+
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(!session) return;
+
+    const lojaId = session.user.id;
+
+    const iframe = document.getElementById("iframeAgendar");
+
+    // 🔥 abre o agendar reutilizando tudo que já existe
+iframe.src = `agendar.html?l=${lojaId}&novo=1`;
+
+    document.getElementById("novoAgendamentoModal").style.display = "flex";
+  });
+}
+
+function fecharNovoAgendamento(){
+  const modal = document.getElementById("novoAgendamentoModal");
+  const iframe = document.getElementById("iframeAgendar");
+
+  iframe.src = ""; // limpa
+  modal.style.display = "none";
+
+  // 🔄 atualiza agenda do dia automaticamente
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(session) carregarAgendaDia(session.user.id);
+  });
+}
+function abrirResumoDia(data){
+  sbHome.auth.getSession().then(({data:{session}})=>{
+    if(!session) return;
+
+    const lojaId = session.user.id;
+    const iframe = document.getElementById("iframeResumoDia");
+
+    iframe.src = `resumodia.html?data=${data}&loja=${lojaId}`;
+    document.getElementById("resumoDiaModal").style.display = "flex";
+  });
+}
+
+function fecharResumoDia(){
+  const modal = document.getElementById("resumoDiaModal");
+  const iframe = document.getElementById("iframeResumoDia");
+
+  iframe.src = "";
+  modal.style.display = "none";
+}
+function formatarDataHora(dt){
+  if(!dt) return "—";
+  return new Date(dt).toLocaleString("pt-BR");
+}
+
+function abrirHistorico(a){
+
+  const box = document.getElementById("historicoConteudo");
+
+  box.innerHTML = `
+    <div class="historico-item">
+      <strong>Cliente</strong>
+      ${a.cliente_nome}
+    </div>
+
+    <div class="historico-item">
+      <strong>Serviço</strong>
+      ${a.servico_nome || (Array.isArray(a.servicos) ? a.servicos.map(s=>s.nome).join(", ") : "—")}
+    </div>
+
+<div class="historico-item">
+  <strong>Data e hora</strong>
+  ${formatarDataBR(a.data)} • ${a.hora_inicio?.slice(0,5)}
+</div>
+
+<div class="historico-item">
+  <strong>Criado em</strong>
+  ${formatarDataHora(a.created_at)}
+</div>
+
+${
+  a.updated_at && a.updated_at !== a.created_at
+  ? `
+    <div class="historico-item">
+      <strong>Última alteração</strong>
+      ${formatarDataHora(a.updated_at)}
+    </div>
+  `
+  : ""
+}
+
+
+
+    <div class="historico-item">
+      <strong>Status atual</strong>
+      ${a.status}
+    </div>
+  `;
+
+  document.getElementById("historicoModal").style.display = "flex";
+}
+
+function formatarDataBR(dataISO){
+  if(!dataISO) return "—";
+  const [y,m,d] = dataISO.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+
+
+
+  
+  
+</script>
+
+<!-- MODAL CLIENTES -->
+<div id="clientesModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+    <iframe
+      src="meus-clientes.html"
+      style="width:100%;height:100%;border:none">
+    </iframe>
+  </div>
+</div>
+
+<!-- MODAL FATURAMENTO MÊS -->
+<div id="faturamentoModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="padding:16px;display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:16px">Faturamento do mês</strong>
+      <button onclick="fecharFaturamentoMes()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- calendário -->
+    <div id="calendarioFaturamento"
+         style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:0 16px 24px;overflow-y:auto">
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL RESUMO DO DIA -->
+<div id="resumoDiaModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:100000;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="
+      padding:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e5e7eb
+    ">
+      <strong style="font-size:16px">Resumo do dia</strong>
+      <button onclick="fecharResumoDia()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- iframe -->
+    <iframe
+      id="iframeResumoDia"
+      src=""
+      style="flex:1;border:none;width:100%"
+    ></iframe>
+
+  </div>
+</div>
+
+
+<!-- MODAL SERVIÇOS -->
+<div id="servicosModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:99999;
+">
+  <div style="
+    width:100%;
+    height:92%;
+    background:#ffffff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- topo -->
+    <div style="padding:16px">
+
+      <!-- handle -->
+      <div style="
+        width:40px;
+        height:4px;
+        background:#d1d5db;
+        border-radius:999px;
+        margin:0 auto 12px;
+      "></div>
+
+      <!-- header -->
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="font-size:16px">Serviços ativos</strong>
+        <button onclick="fecharServicos()" style="
+          border:none;
+          background:#e5e7eb;
+          border-radius:999px;
+          padding:6px 12px;
+          font-weight:700;
+        ">Fechar</button>
+      </div>
+
+    </div>
+
+    <!-- lista -->
+    <div id="listaServicos" style="
+      flex:1;
+      overflow-y:auto;
+      padding:0 16px 24px;
+      -webkit-overflow-scrolling:touch;
+    "></div>
+
+  </div>
+</div>
+<button id="btnNovoAgendamento" onclick="abrirNovoAgendamento()">
+  <i class="ri-add-line"></i>
+</button>
+<div id="novoAgendamentoModal" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:flex-end;
+  z-index:100000;
+">
+
+  <div style="
+    width:100%;
+    height:94%;
+    background:#fff;
+    border-radius:22px 22px 0 0;
+    overflow:hidden;
+    box-shadow:0 -14px 40px rgba(0,0,0,.25);
+    display:flex;
+    flex-direction:column;
+  ">
+
+    <!-- header -->
+    <div style="
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #e5e7eb
+    ">
+      <strong>Novo agendamento</strong>
+      <button onclick="fecharNovoAgendamento()" style="
+        border:none;
+        background:#e5e7eb;
+        border-radius:999px;
+        padding:6px 12px;
+        font-weight:700;
+      ">Fechar</button>
+    </div>
+
+    <!-- iframe -->
+    <iframe
+      id="iframeAgendar"
+      src=""
+      style="flex:1;border:none;width:100%"
+    ></iframe>
+
+  </div>
+</div>
+<script>
+window.addEventListener("message", function(event) {
+  if (event.data === "AGENDAMENTO_OK") {
+    fecharNovoAgendamento();
+  }
+});
+</script>
+<div id="historicoModal">
+  <div class="modal-box">
+
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong>Histórico do agendamento</strong>
+      <button onclick="document.getElementById('historicoModal').style.display='none'"
+        style="border:none;background:#e5e7eb;border-radius:999px;padding:6px 12px;font-weight:700">
+        Fechar
+      </button>
+    </div>
+
+    <div id="historicoConteudo"></div>
+
+  </div>
+</div>
+
+</body>
+</html>

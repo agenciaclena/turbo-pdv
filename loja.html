@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Loja • Início</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#0b0b0b;
+  --card:rgba(255,255,255,.92);
+  --muted:#6b7280;
+}
+
+*{box-sizing:border-box;font-family:Inter}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:#000;
+  overflow:hidden;
+}
+
+.bg{
+  position:fixed;
+  inset:0;
+  background-size:cover;
+  background-position:center;
+  filter:brightness(.55);
+  transform:scale(1.05);
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  backdrop-filter:blur(12px);
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.card{
+  width:92%;
+  max-width:380px;
+  background:var(--card);
+  border-radius:26px;
+  padding:26px;
+  box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+
+.logo{
+  text-align:center;
+  margin-bottom:14px;
+}
+.logo img{
+  width:84px;
+  height:84px;
+  border-radius:22px;
+  object-fit:cover;
+}
+
+h1{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  margin:10px 0 6px;
+}
+
+p{
+  text-align:center;
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid #e5e7eb;
+  font-size:15px;
+  margin-bottom:12px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border-radius:18px;
+  border:none;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:800;
+  font-size:16px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg" id="bg"></div>
+
+<div class="overlay">
+  <div class="card">
+    <div class="logo">
+      <img id="logoLoja" src="https://via.placeholder.com/200">
+    </div>
+
+    <h1 id="nomeLoja">Agenda Fácil</h1>
+    <p>Informe seus dados para continuar</p>
+
+    <input id="nome" placeholder="SEU NOME COMPLETO">
+    <input id="whats" placeholder="WHATSAPP">
+
+    <button onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+
+/* MÁSCARA WHATSAPP */
+whats.addEventListener("input",()=>{
+  let v = whats.value.replace(/\D/g,"").slice(0,11);
+  if(v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+  else if(v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+  whats.value = v;
+});
+
+/* CARREGAR DADOS DA LOJA */
+(async()=>{
+  const { data } = await sb
+    .from("user_profile")
+.select("negocio, avatar_url")
+    .eq("user_id", lojaId)
+    .single();
+
+  if(data){
+    nomeLoja.innerText = data.negocio;
+    if(data.avatar_url) logoLoja.src = data.avatar_url;
+    if(data.capa_url) bg.style.backgroundImage = `url('${data.capa_url}')`;
+  }
+
+  const { data:{session} } = await sb.auth.getSession();
+  if(session){
+    location.href = `app.html?l=${lojaId}`;
+  }
+})();
+
+/* ENTRADA AUTOMÁTICA */
+async function entrar(){
+  const nomeVal  = nome.value.trim().toUpperCase();
+  const whatsVal = whats.value.replace(/\D/g,"");
+
+  if(nomeVal.length < 3 || whatsVal.length < 10){
+    alert("Informe nome e WhatsApp válidos");
+    return;
+  }
+
+  const emailFake = `${whatsVal}@cliente.agendafacil`;
+  const senhaFake = `AF@${whatsVal}`;
+
+  let { error } = await sb.auth.signInWithPassword({
+    email: emailFake,
+    password: senhaFake
+  });
+
+  if(error){
+    await sb.auth.signUp({
+      email: emailFake,
+      password: senhaFake
+    });
+  }
+
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user){
+    alert("Erro ao autenticar");
+    return;
+  }
+
+  await sb.from("clientes_loja").upsert({
+    cliente_id: user.id,
+    loja_id: lojaId
+  });
+
+  const { data: perfil } = await sb
+    .from("clientes_profile")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if(!perfil){
+    await sb.from("clientes_profile").insert({
+      id: user.id,
+      nome: nomeVal,
+      whatsapp: whatsVal,
+      loja_ativa: lojaId
+    });
+  } else {
+    await sb.from("clientes_profile")
+      .update({ loja_ativa: lojaId })
+      .eq("id", user.id);
+  }
+
+  location.href = `app.html?l=${lojaId}`;
+}
+</script>
+
+</body>
+</html>

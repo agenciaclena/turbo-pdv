@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+<title>Configurações</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --blue:#2563eb;
+}
+
+*{box-sizing:border-box;font-family:Inter}
+
+body{
+  background:linear-gradient(180deg,#fff,#f4f6fb);
+  padding:18px;
+  opacity:0;
+  animation:fade .6s ease forwards;
+}
+
+@keyframes fade{to{opacity:1}}
+
+.card{
+  background:var(--card);
+  border-radius:28px;
+  padding:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.1);
+  margin-bottom:20px;
+  opacity:0;
+  transform:translateY(24px);
+  animation:cardIn .7s cubic-bezier(.16,.84,.44,1) forwards;
+}
+.card:nth-child(1){animation-delay:.1s}
+.card:nth-child(2){animation-delay:.25s}
+
+@keyframes cardIn{
+  to{opacity:1;transform:translateY(0)}
+}
+
+h1{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+h2{
+  font-size:16px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+p{
+  font-size:14px;
+  color:var(--muted);
+  margin-bottom:14px;
+  line-height:1.4;
+}
+
+/* ================= LINK ================= */
+.link-box{
+  border:2px dashed var(--border);
+  border-radius:16px;
+  padding:14px;
+  font-size:13px;
+  background:#fafafa;
+  word-break:break-all;
+  margin-bottom:10px;
+}
+
+/* ================= BUTTONS ================= */
+button{
+  width:100%;
+  height:48px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+  transition:.25s;
+}
+button:active{transform:scale(.97)}
+
+.whats{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+/* ================= MP HEADER ================= */
+.mp-header{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:12px;
+}
+.mp-header img{
+  width:180px;
+  animation:pulse 2.8s infinite;
+}
+@keyframes pulse{
+  50%{transform:scale(1.05)}
+}
+
+/* ================= STEPS ================= */
+.steps{
+  margin-top:10px;
+}
+.steps li{
+  font-size:14px;
+  margin-bottom:10px;
+}
+.steps a{
+  color:var(--blue);
+  font-weight:800;
+  cursor:pointer;
+  text-decoration:underline;
+}
+
+/* ================= INPUT ================= */
+input{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--border);
+  font-size:14px;
+  margin-bottom:12px;
+}
+
+/* ================= STATUS ================= */
+.status{
+  padding:14px;
+  border-radius:16px;
+  font-size:14px;
+  font-weight:800;
+  background:#ecfdf5;
+  color:var(--success);
+  text-align:center;
+}
+
+/* ================= MODAL ================= */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.modal.show{display:flex}
+
+.modal-box{
+  background:#fff;
+  width:94%;
+  max-width:420px;
+  border-radius:26px;
+  padding:16px;
+  animation:cardIn .4s ease forwards;
+}
+
+.modal-box video{
+  width:100%;
+  border-radius:18px;
+  margin-bottom:12px;
+}
+
+.modal-actions{
+  display:grid;
+  gap:10px;
+}
+
+.btn-close{
+  background:#e5e7eb;
+  color:#111;
+}
+
+/* LINK + BOTÃO */
+.link-row{
+  display:flex;
+  gap:10px;
+  align-items:stretch;
+}
+
+.btn-palette{
+  min-width:52px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(135deg,#111827,#374151);
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+  transition:.25s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.btn-palette:active{
+  transform:scale(.95);
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= LINK DA LOJA ================= -->
+<div class="card">
+  <h2 id="nomeLoja">Sua loja</h2>
+  <p>Compartilhe com seus clientes</p>
+
+<div class="link-row">
+  <div class="link-box" id="linkLoja">Carregando…</div>
+
+  <button class="btn-palette" onclick="abrirConfigLoja()" title="Personalizar aparência">
+    🎨
+  </button>
+</div>
+
+  <button onclick="copiarLink()">📋 Copiar link</button>
+  <button class="whats" style="margin-top:10px" onclick="compartilharWhats()">📲 Compartilhar no WhatsApp</button>
+</div>
+
+<!-- ================= MERCADO PAGO ================= -->
+<div class="card">
+
+  <div class="mp-header">
+    <img src="logomp.png">
+    <h1>Pagamentos Online</h1>
+  </div>
+
+  <p id="mensagemLoja"></p>
+
+  <ol class="steps">
+    <li>Acessar vídeo explicativo <a onclick="abrirVideo()">clique aqui</a></li>
+    <li>Copie o <b>Access Token de PRODUÇÃO</b></li>
+    <li>❌ Não utilize token de teste</li>
+    <li>⚠️ DICAS IMPORTANTES <b>acesso por celular</b></li>
+    <li>Ative “Versão para computador” no navegador se não aparecer</li>
+    <li>Chrome: ⋮ → Versão para computador</li>
+    <li>Safari (iPhone): aA → Solicitar site para computador</li>
+    <li>Copie com cuidado (não pegar espaços)</li>
+  </ol>
+
+  <div id="formToken">
+    <input id="token" placeholder="Cole aqui o MP_ACCESS_TOKEN">
+    <button onclick="salvarToken()">Ativar pagamentos online</button>
+  </div>
+
+  <div id="statusAtivo" class="status" style="display:none">
+    ✅ Pagamentos online ativados com sucesso
+  </div>
+
+  <button class="whats" style="margin-top:14px" onclick="suporte()">💬 Falar com suporte</button>
+
+</div>
+
+<!-- ================= MODAL VÍDEO ================= -->
+<div class="modal" id="modalVideo">
+  <div class="modal-box">
+    <video controls src="" id="videoPlayer"></video>
+
+    <p style="font-size:13px;color:#6b7280;margin-bottom:12px">
+      Neste vídeo você verá exatamente onde encontrar o Access Token de produção no Mercado Pago.
+    </p>
+
+    <div class="modal-actions">
+      <button onclick="prosseguir()">Prosseguir</button>
+      <button class="btn-close" onclick="fecharVideo()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const VIDEO_URL = "https://egxjgmzukjyyxmkukwub.supabase.co/storage/v1/object/public/videosfront/Gravando%202026-01-06%20195208%20(1).mp4";
+const LINK_PROSSEGUIR = "https://www.mercadopago.com.br/developers/panel/credentials";
+
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+let lojaId, linkPublico, nomeLoja;
+let corPrimaryAtual = "#ff6a00";
+let corTextoAtual = "#ffffff";
+
+/* APLICA TEMA NA PÁGINA */
+function aplicarTema(){
+  document.documentElement.style.setProperty("--primary", corPrimaryAtual);
+  document.documentElement.style.setProperty("--text", corTextoAtual);
+
+  const preview = document.getElementById("previewCard");
+  if(preview){
+    preview.style.background = corPrimaryAtual;
+    preview.style.color = corTextoAtual;
+  }
+}
+
+/* PALETAS */
+function usarPaleta(bg, txt){
+  corPrimaryAtual = bg;
+  corTextoAtual = txt;
+  document.getElementById("corPrimary").value = bg;
+  document.getElementById("corTexto").value = txt;
+  aplicarTema();
+}
+
+/* ABRIR POPUP */
+async function abrirConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display = "flex";
+
+  const { data, error } = await sb
+    .from("loja_config")
+    .select("*")
+    .eq("user_id", lojaId)
+    .maybeSingle();
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  if(data){
+    corPrimaryAtual = data.primary_color;
+    corTextoAtual   = data.text_color;
+  }
+
+  corPrimary.value = corPrimaryAtual;
+  corTexto.value   = corTextoAtual;
+
+  aplicarTema();
+}
+
+
+/* FECHAR */
+function fecharConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display="none";
+}
+
+/* SALVAR */
+async function salvarConfigLoja(){
+  const { error } = await sb
+    .from("loja_config")
+    .upsert(
+      {
+        user_id: lojaId,
+        primary_color: corPrimaryAtual,
+        secondary_color: corPrimaryAtual,
+        text_color: corTextoAtual,
+        updated_at: new Date()
+      },
+      {
+        onConflict: "user_id"
+      }
+    );
+
+  if(error){
+    console.error(error);
+    alert("Erro ao salvar aparência");
+    return;
+  }
+
+  aplicarTema();
+  alert("Aparência atualizada com sucesso 🎉");
+  fecharConfigLoja();
+}
+
+function aplicarTema(){
+  document.documentElement.style.setProperty("--primary", corPrimaryAtual);
+  document.documentElement.style.setProperty("--primary-2", corPrimaryAtual);
+  document.documentElement.style.setProperty("--text", corTextoAtual);
+
+  const preview = document.getElementById("previewCard");
+  if(preview){
+    preview.style.background = corPrimaryAtual;
+    preview.style.color = corTextoAtual;
+  }
+}
+
+
+(async ()=>{
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session) return location.href="login.html";
+
+  lojaId = session.user.id;
+  linkPublico = `${location.origin}/loja.html?l=${lojaId}`;
+  linkLoja.innerText = linkPublico;
+
+  const {data} = await sb
+    .from("user_profile")
+    .select("negocio,pagamento_online_ativo")
+    .eq("user_id", lojaId)
+    .single();
+
+  nomeLoja = data?.negocio || "sua loja";
+  nomeLojaEl = document.getElementById("nomeLoja");
+  nomeLojaEl.innerText = nomeLoja;
+
+  mensagemLoja.innerText =
+    `Ative os pagamentos online para que os clientes da ${nomeLoja} possam pagar direto pela agenda.`;
+
+  if(data?.pagamento_online_ativo){
+    formToken.style.display="none";
+    statusAtivo.style.display="block";
+  }
+})();
+
+function copiarLink(){
+  navigator.clipboard.writeText(linkPublico);
+  alert("Link copiado com sucesso ✅");
+}
+
+function compartilharWhats(){
+  const msg = `Olá 😊\n\nAcesse a ${nomeLoja} e pague online:\n${linkPublico}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");
+}
+
+function abrirVideo(){
+  videoPlayer.src = VIDEO_URL;
+  modalVideo.classList.add("show");
+}
+function fecharVideo(){
+  videoPlayer.pause();
+  modalVideo.classList.remove("show");
+}
+function prosseguir(){
+  window.open(LINK_PROSSEGUIR,"_blank");
+}
+
+function tokenValido(t){
+  return t.startsWith("APP_USR-") && t.length > 60;
+}
+
+async function salvarToken(){
+  const t = token.value.trim();
+  if(!tokenValido(t)) return alert("Token inválido");
+
+  const res = await fetch("/api/salvar-credencial-mp",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ loja_id: lojaId, mp_access_token: t })
+  });
+
+  if(!res.ok) return alert("Erro ao ativar integração");
+
+  formToken.style.display="none";
+  statusAtivo.style.display="block";
+}
+
+function suporte(){
+  window.open("https://wa.me/5575998112535","_blank");
+}
+function abrirConfigLoja(){
+  document.getElementById("configLojaOverlay").style.display = "flex";
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById("corPrimary").addEventListener("input", e=>{
+    corPrimaryAtual = e.target.value;
+    aplicarTema();
+  });
+
+  document.getElementById("corTexto").addEventListener("input", e=>{
+    corTextoAtual = e.target.value;
+    aplicarTema();
+  });
+});
+
+</script>
+<!-- ================= POPUP CONFIGURAÇÃO DA LOJA ================= -->
+<div id="configLojaOverlay" style="
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+">
+  <div style="
+    background:#fff;
+    width:94%;
+    max-width:420px;
+    border-radius:28px;
+    padding:20px;
+    box-shadow:0 30px 90px rgba(0,0,0,.35);
+    animation:cardIn .35s ease forwards;
+  ">
+
+    <h2 style="margin-bottom:6px">🎨 Aparência da loja</h2>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:14px">
+      Escolha uma paleta ou personalize manualmente
+    </p>
+
+    <!-- PALETAS PRÉ-DEFINIDAS -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px">
+      <div class="paleta" style="background:#ff6a00" onclick="usarPaleta('#ff6a00','#ffffff')"></div>
+      <div class="paleta" style="background:#2563eb" onclick="usarPaleta('#2563eb','#ffffff')"></div>
+      <div class="paleta" style="background:#16a34a" onclick="usarPaleta('#16a34a','#ffffff')"></div>
+      <div class="paleta" style="background:#7c3aed" onclick="usarPaleta('#7c3aed','#ffffff')"></div>
+      <div class="paleta" style="background:#0f172a" onclick="usarPaleta('#0f172a','#ffffff')"></div>
+    </div>
+
+    <!-- CORES MANUAIS -->
+    <label style="font-size:12px;font-weight:800">Cor principal</label>
+    <input type="color" id="corPrimary" style="width:100%;height:42px;border-radius:10px;border:none;margin-bottom:10px">
+
+    <label style="font-size:12px;font-weight:800">Cor do texto</label>
+    <input type="color" id="corTexto" style="width:100%;height:42px;border-radius:10px;border:none">
+
+    <!-- PREVIEW -->
+    <div id="previewCard" style="
+      margin:16px 0;
+      border-radius:18px;
+      padding:14px;
+      color:#fff;
+      font-weight:800;
+    ">
+      Exemplo de banner da loja
+    </div>
+
+    <button onclick="salvarConfigLoja()">💾 Salvar aparência</button>
+    <button class="btn-close" style="margin-top:10px" onclick="fecharConfigLoja()">Fechar</button>
+  </div>
+</div>
+
+<style>
+.paleta{
+  height:44px;
+  border-radius:12px;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+</style>
+
+</body>
+</html>

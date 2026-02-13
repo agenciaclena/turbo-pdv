@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+<title>Cadastro - Produtos & Serviços</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+<meta name="theme-color" content="#ff6a00">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter
+}
+
+body{
+  background:#f4f6fb;
+  overscroll-behavior:none;
+}
+
+:root{
+  --primary:#ff6a00;
+  --primary-soft:rgba(255,106,0,.14);
+  --card:#fff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+
+.header{
+  padding:16px;
+}
+.header h1{
+  font-size:18px;
+  font-weight:800;
+}
+.header span{color:var(--primary)}
+.header p{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* ================= FILTERS ================= */
+.filters{
+  display:flex;
+  gap:8px;
+  padding:0 16px 16px;
+}
+.filters input,
+.filters select{
+  flex:1;
+  height:38px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  padding:0 12px;
+  font-size:13px;
+  background:#fff;
+}
+
+/* ================= GRID ================= */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  padding:0 16px 140px;
+}
+
+/* ================= CARD ================= */
+.item{
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.item img{
+  width:100%;
+  height:72px;
+  object-fit:cover;
+}
+.item-body{
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.item-body h4{
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.badge{
+  font-size:9px;
+  font-weight:800;
+  padding:2px 8px;
+  border-radius:999px;
+  width:fit-content;
+}
+.badge.servico{background:#e0f2fe;color:#0369a1}
+.badge.produto{background:#ecfeff;color:#0f766e}
+.badge.promo{background:#fff7ed;color:#c2410c}
+.price{
+  font-size:12px;
+  font-weight:800;
+}
+.actions{
+  font-size:11px;
+  font-weight:700;
+  color:var(--primary);
+  cursor:pointer;
+}
+
+/* ================= FAB ================= */
+.fab{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-size:28px;
+  border:none;
+  box-shadow:0 14px 34px rgba(0,0,0,.35);
+}
+
+/* ================= MODAL ================= */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:flex-end;
+  z-index:9999;
+}
+.modal.show{
+  display:flex;
+}
+
+/* ================= BOTTOM SHEET ================= */
+.sheet{
+  width:100%;
+  height:92vh;
+  background:#fff;
+  border-radius:24px 24px 0 0;
+  display:flex;
+  flex-direction:column;
+  animation:none; /* REMOVE BALANÇO */
+}
+
+.sheet-header{
+  padding:16px;
+  border-bottom:1px solid var(--border);
+  font-weight:800;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.sheet-body{
+  flex:1;
+  padding:16px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.sheet-body label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+  margin-bottom:4px;
+  display:block;
+}
+
+/* ================= INPUTS ================= */
+.sheet-body input,
+.sheet-body textarea,
+.sheet-body select{
+  width:100%;
+  height:42px;
+  margin-bottom:12px;
+  padding:0 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  font-size:14px;
+  background:#fff;
+}
+
+.sheet-body textarea{
+  height:auto;
+  padding:10px;
+  min-height:80px;
+}
+
+/* ================= IMAGE ================= */
+.image-box{
+  height:140px;
+  border-radius:16px;
+  background:#f1f1f1;
+  overflow:hidden;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.image-box img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* ================= FLAGS / TOGGLES ================= */
+.sheet-body label:has(input[type="checkbox"]){
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--text);
+  margin:14px 0 6px;
+}
+
+/* custom toggle */
+.sheet-body input[type="checkbox"]{
+  appearance:none;
+  width:42px;
+  height:24px;
+  background:#e5e7eb;
+  border-radius:999px;
+  position:relative;
+  cursor:pointer;
+  flex-shrink:0;
+  transition:.25s;
+}
+
+.sheet-body input[type="checkbox"]::after{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  background:#fff;
+  border-radius:50%;
+  top:3px;
+  left:3px;
+  transition:.25s;
+}
+
+.sheet-body input[type="checkbox"]:checked{
+  background:var(--primary);
+}
+.sheet-body input[type="checkbox"]:checked::after{
+  transform:translateX(18px);
+}
+
+/* ================= FOOTER ================= */
+.sheet-footer{
+  padding:14px;
+  border-top:1px solid var(--border);
+  display:flex;
+  gap:12px;
+  background:#fff;
+}
+
+.sheet-footer button{
+  flex:1;
+  height:46px;
+  border:none;
+  border-radius:999px;
+  font-weight:800;
+  font-size:14px;
+}
+
+.btn-save{
+  background:var(--primary);
+  color:#fff;
+}
+.btn-cancel{
+  background:#e5e7eb;
+}
+
+/* ================= LOADING ================= */
+.loading{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+}
+.loading div{
+  background:#fff;
+  padding:26px 34px;
+  border-radius:18px;
+  font-weight:800;
+}
+/* ===== ORDENACAO DRAG ===== */
+.item.dragging {
+  opacity: .4;
+}
+
+.item.drag-over {
+  outline: 2px dashed var(--primary);
+}
+.item {
+  cursor: grab;
+}
+.item.dragging {
+  cursor: grabbing;
+}
+
+
+/* ================= BOTÃO IA ================= */
+.btn-ia{
+  margin-top:10px;
+  width:100%;
+  height:42px;
+  border-radius:14px;
+  border:1px solid rgba(255,106,0,.6);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,106,0,.95),
+      rgba(255,154,87,.95)
+    );
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.3px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 rgba(255,106,0,0),
+    0 12px 30px rgba(255,106,0,.45);
+  transition:.25s ease;
+}
+
+/* brilho animado */
+.btn-ia::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(
+      120deg,
+      transparent 30%,
+      rgba(255,255,255,.55),
+      transparent 70%
+    );
+  transform:translateX(-100%);
+  animation:shine 2.8s infinite;
+}
+
+@keyframes shine{
+  0%{transform:translateX(-100%)}
+  60%{transform:translateX(100%)}
+  100%{transform:translateX(100%)}
+}
+
+.btn-ia:hover{
+  transform:translateY(-1px) scale(1.01);
+  box-shadow:
+    0 0 12px rgba(255,106,0,.65),
+    0 18px 40px rgba(255,106,0,.55);
+}
+
+.btn-ia:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+
+.btn-ia .sparkle{
+  margin-right:6px;
+}
+#preview{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</style>
+</head>
+
+<body>
+
+<div class="loading" id="loading"><div>Salvando item…</div></div>
+
+<div class="header">
+  <h1>Produtos & <span>Serviços</span></h1>
+  <p>Cadastro completo</p>
+</div>
+
+<div class="filters">
+  <input id="search" placeholder="Buscar">
+  <select id="filtroTipo">
+    <option value="">Todos</option>
+    <option value="SERVICO">Serviços</option>
+    <option value="PRODUTO">Produtos</option>
+   <option value="DIGITAL">Digital</option>
+
+  </select>
+</div>
+
+<div class="grid" id="lista"></div>
+<button class="fab" onclick="abrirModalNovo()">+</button>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="sheet">
+
+    <div class="sheet-header">
+      <span id="formTitle">Novo item</span>
+      <span onclick="fecharModal()">✕</span>
+    </div>
+
+    <!-- BODY -->
+    <div class="sheet-body">
+
+      <label>Tipo</label>
+      <select id="tipo" onchange="toggleTipo()">
+        <option value="SERVICO">Serviço</option>
+        <option value="PRODUTO">Produto</option>
+        <option value="DIGITAL">Digital</option>
+
+      </select>
+
+      <label>Nome</label>
+      <input id="nome">
+
+      <label>Descrição</label>
+      <textarea id="descricao"></textarea>
+
+      <label>Categoria</label>
+      <input id="categoria">
+
+      <!-- PREÇO -->
+      <label>Preço</label>
+      <input id="preco" inputmode="decimal" oninput="formatarMoedaInput(this)">
+
+      <label>Custo</label>
+      <input id="custo" inputmode="decimal" oninput="formatarMoedaInput(this)">
+
+      <!-- PROMOÇÃO -->
+      <label>
+        <input type="checkbox" id="promoAtiva">
+        Promoção ativa
+      </label>
+
+      <label>Preço promocional</label>
+      <input
+        id="precoPromo"
+        inputmode="decimal"
+        oninput="formatarMoedaInput(this)"
+        disabled
+      >
+
+      <!-- PAGAMENTO ONLINE (SERVIÇO OU PRODUTO) -->
+      <div id="boxPagamentoOnline" style="display:none">
+        <label>
+          <input type="checkbox" id="pgOnline">
+          Aceita pagamento online
+        </label>
+      </div>
+
+      <!-- SERVIÇO -->
+      <div id="boxServico" style="display:none">
+        <label>Duração (minutos)</label>
+        <input id="duracao" type="number" inputmode="numeric">
+      </div>
+
+      <!-- PRODUTO -->
+      <div id="boxProduto" style="display:none">
+        <label>
+          <input type="checkbox" id="controlaEstoque">
+          Controlar estoque
+        </label>
+
+        <label>Estoque atual</label>
+        <input id="estoqueAtual" type="number" inputmode="numeric">
+
+        <label>Estoque mínimo</label>
+        <input id="estoqueMinimo" type="number" inputmode="numeric">
+      </div>
+
+      <!-- DEMAIS CAMPOS -->
+      <label>Ordem de exibição</label>
+      <input id="ordem" type="number" inputmode="numeric">
+
+      <label>
+        <input type="checkbox" id="ativo">
+        Item ativo
+      </label>
+
+      <label>Observações internas</label>
+      <textarea id="obs"></textarea>
+
+      <label>Imagem</label>
+      <div class="image-box" onclick="imagem.click()">
+<div id="preview" style="display:none"></div>
+<input
+  type="file"
+  id="imagem"
+  hidden
+  accept="image/*"
+  multiple
+>
+      </div>
+
+<button
+  id="btnIA"
+  type="button"
+  class="btn-ia"
+  onclick="gerarImagemIA()"
+>
+  <span class="sparkle">✨</span>
+  Gerar imagem com IA
+</button>
+
+
+    </div>
+    <!-- FIM sheet-body -->
+
+    <div class="sheet-footer">
+
+
+  <!-- BOTÃO EXCLUIR (somente edição) -->
+  <button
+    id="btnExcluir"
+    onclick="confirmarExclusao()"
+    style="
+      background:transparent;
+      color:#dc2626;
+      font-size:12px;
+      font-weight:700;
+      border:none;
+      padding:0 6px;
+      display:none;
+    ">
+    Excluir item
+  </button>
+
+  <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+  <button class="btn-save" onclick="salvar()">Salvar</button>
+</div>
+
+  </div>
+</div>
+
+<script>
+const sb=supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+let pagamentoOnlineAtivo = false;
+let userId,itens=[],editId=null,blob=null;
+let dragEl = null;
+let pressTimer = null;
+let blobs = [];
+let planoUsuario = "";
+let previewUrl = null;
+
+const TIPO_LABEL = {
+  SERVICO: "SERVIÇO",
+  PRODUTO: "PRODUTO"
+};
+
+(async()=>{
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session) location.href="login.html";
+
+  userId = session.user.id;
+
+  // 🔐 VERIFICA SE A LOJA TEM PAGAMENTO ONLINE ATIVO
+const { data: perfil } = await sb
+  .from("user_profile")
+  .select("pagamento_online_ativo, assinatura_plano")
+  .eq("user_id", userId)
+  .single();
+
+pagamentoOnlineAtivo = !!perfil?.pagamento_online_ativo;
+planoUsuario = perfil?.assinatura_plano || "";
+
+
+  pagamentoOnlineAtivo = !!perfil?.pagamento_online_ativo;
+
+  carregar();
+})();
+
+
+function toggleTipo(){
+  const tipoSelecionado = tipo.value;
+
+  // RESET
+  boxServico.style.display = "none";
+  boxProduto.style.display = "none";
+
+  // SERVIÇO
+  if (tipoSelecionado === "SERVICO") {
+    boxServico.style.display = "block";
+  }
+
+  // PRODUTO
+  if (tipoSelecionado === "PRODUTO") {
+    boxProduto.style.display = "block";
+  }
+
+  // PAGAMENTO ONLINE (SERVICO, PRODUTO, DIGITAL)
+  if (pagamentoOnlineAtivo) {
+    boxPagamentoOnline.style.display = "block";
+  } else {
+    boxPagamentoOnline.style.display = "none";
+    pgOnline.checked = false;
+  }
+}
+
+  
+promoAtiva.addEventListener("change", () => {
+  precoPromo.disabled = !promoAtiva.checked;
+  if (!promoAtiva.checked) precoPromo.value = "";
+});
+
+
+
+  function formatarMoedaInput(input){
+  let valor = input.value.replace(/\D/g,'');
+  valor = (Number(valor) / 100).toLocaleString('pt-BR',{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+  input.value = valor;
+}
+
+function moedaParaNumero(valor){
+  if(!valor) return 0;
+  return Number(
+    valor
+      .replace(/\./g,'')
+      .replace(',','.')
+  );
+}
+
+async function gerarImagemIA(){
+  if(!nome.value){
+    alert("Informe o nome antes de gerar a imagem");
+    return;
+  }
+
+  btnIA.disabled = true;
+  btnIA.innerText = "✨ Gerando imagem com IA...";
+
+  try{
+    const res = await fetch("/api/gerar-imagem-produto",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        user_id:userId,
+        nome:nome.value,
+        descricao:descricao.value,
+        categoria:categoria.value,
+        tipo:tipo.value
+      })
+    });
+
+    const data = await res.json();
+
+    if(!data.imagem_url){
+      throw new Error("Falha ao gerar imagem");
+    }
+
+previewUrl = data.imagem_url;
+
+preview.innerHTML = `
+  <img src="${previewUrl}" style="width:100%;border-radius:12px">
+`;
+
+preview.style.display = "flex";
+preview.style.width = "100%";
+preview.style.height = "100%";
+
+    atualizarBotaoIA();
+
+  }catch(err){
+    alert("Erro ao gerar imagem com IA");
+    console.error(err);
+  }
+
+  btnIA.disabled = false;
+  btnIA.innerHTML = `<span class="sparkle">✨</span> Gerar imagem com IA`;
+}
+
+
+function atualizarBotaoIA(){
+  btnIA.style.display =
+    preview.style.display !== "none"
+      ? "none"
+      : "block";
+}
+
+
+async function salvar(){
+  loading.style.display = "flex";
+
+  const payload = {
+  user_id: userId,
+  tipo: tipo.value,
+  nome: nome.value?.trim() || "",
+  descricao: descricao.value?.trim() || "",
+  categoria: categoria.value?.trim() || "",
+
+  preco: Number(moedaParaNumero(preco.value) || 0),
+  custo: Number(moedaParaNumero(custo.value) || 0),
+  preco_promocional: promoAtiva.checked
+    ? Number(moedaParaNumero(precoPromo.value) || 0)
+    : null,
+
+  promocao_ativa: !!promoAtiva.checked,
+
+  duracao_minutos:
+    tipo.value === "SERVICO"
+      ? Number(duracao.value || 0)
+      : 0,   // 🔥 AQUI ESTÁ O FIX
+
+  pg_online: pagamentoOnlineAtivo ? !!pgOnline.checked : false,
+  controla_estoque: !!controlaEstoque.checked,
+  estoque_atual: Number(estoqueAtual.value || 0),
+  estoque_minimo: Number(estoqueMinimo.value || 0),
+  ordem_exibicao: Number(ordem.value || 0),
+  ativo: !!ativo.checked,
+  observacoes_internas: obs.value?.trim() || "",
+  extras: null
+};
+
+if (previewUrl && blobs.length === 0) {
+  payload.imagem_url = previewUrl;
+}
+
+
+  let data = null;
+
+  if (editId) {
+    const res = await sb
+      .from("produtos_servicos")
+      .update(payload)
+      .eq("id", editId)
+      .select("id")
+      .maybeSingle();
+
+    data = res.data;
+  } else {
+    const res = await sb
+      .from("produtos_servicos")
+      .insert(payload)
+      .select("id")
+      .maybeSingle();
+
+    data = res.data;
+  }
+
+  // 🛡️ PROTEÇÃO TOTAL (NUNCA MAIS ERRO)
+ if (blobs.length && data?.id) {
+  const urls = [];
+
+  for (let i = 0; i < blobs.length; i++) {
+    const path = `${userId}/${data.id}_${i + 1}.jpg`;
+
+    await sb.storage
+      .from("produtos")
+      .upload(path, blobs[i], { upsert: true });
+
+    const { data: signed } = await sb.storage
+      .from("produtos")
+      .createSignedUrl(path, 31536000);
+
+    urls.push(signed.signedUrl);
+  }
+
+  await sb
+    .from("produtos_servicos")
+    .update({
+      imagens: urls.join(", "),
+      imagem_url: urls[0]
+    })
+    .eq("id", data.id);
+}
+
+
+  loading.style.display = "none";
+  fecharModal();
+  carregar();
+}
+
+async function carregar(){
+ const {data}=await sb.from("produtos_servicos").select("*").eq("user_id",userId).order("ordem_exibicao");
+ itens=data||[];
+ render();
+}
+
+function render(){
+ lista.innerHTML="";
+ itens.filter(i=>{
+  if(search.value && !i.nome.toLowerCase().includes(search.value.toLowerCase())) return false;
+  if(filtroTipo.value && i.tipo!==filtroTipo.value) return false;
+  return true;
+ }).forEach(i=>{
+ lista.innerHTML+=`
+<div class="item"
+     draggable="true"
+     data-id="${i.id}">
+${
+  i.imagens
+    ? i.imagens.split(", ").map(url => `
+        <img src="${url}">
+      `).join("")
+    : i.imagem_url
+      ? `<img src="${i.imagem_url}">`
+      : ""
+}
+  <div class="item-body">
+   <h4>${i.nome}</h4>
+
+   <div class="badge ${i.tipo === "SERVICO" ? "servico" : "produto"}">
+     ${TIPO_LABEL[i.tipo] || i.tipo}
+   </div>
+
+   ${i.pg_online ? `<span class="badge promo">💳 Pagamento online</span>` : ""}
+
+   <span class="price">
+     R$ ${Number(i.preco).toFixed(2).replace('.',',')}
+   </span>
+
+   <div class="actions" onclick="editar('${i.id}')">Editar</div>
+  </div>
+ </div>`;
+ });
+ ativarOrdenacao();
+}
+
+
+
+function ativarOrdenacao() {
+  const cards = document.querySelectorAll(".item");
+
+  // ⬇️ DRAGOVER NO CONTAINER (UMA VEZ SÓ)
+if (!lista._dragBound) {
+  lista._dragBound = true;
+
+  lista.addEventListener("dragover", e => {
+    e.preventDefault();
+    if (!dragEl) return;
+
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const target = el?.closest(".item");
+
+    if (!target || target === dragEl) return;
+
+    const rect = target.getBoundingClientRect();
+    const depois =
+      (e.clientY - rect.top) > rect.height / 2 ||
+      (e.clientX - rect.left) > rect.width / 2;
+
+    if (depois) {
+      target.after(dragEl);
+    } else {
+      target.before(dragEl);
+    }
+  });
+}
+
+
+  cards.forEach(card => {
+
+    /* ===== DESKTOP ===== */
+    card.addEventListener("dragstart", e => {
+      dragEl = card;
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+
+card.addEventListener("dragend", () => {
+  card.classList.remove("dragging");
+  dragEl = null; // ⬅️ ISSO FALTAVA
+  salvarNovaOrdem();
+});
+
+
+
+
+    /* ===== MOBILE (TOQUE LONGO) ===== */
+    card.addEventListener("touchstart", () => {
+      pressTimer = setTimeout(() => {
+        dragEl = card;
+        card.classList.add("dragging");
+      }, 250);
+    });
+
+    card.addEventListener("touchend", () => {
+      clearTimeout(pressTimer);
+      if (dragEl) {
+        dragEl.classList.remove("dragging");
+        dragEl = null;
+        salvarNovaOrdem();
+      }
+    });
+
+card.addEventListener("touchmove", e => {
+  if (!dragEl) return;
+  e.preventDefault();
+
+  const touch = e.touches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  const target = el?.closest(".item");
+
+  if (!target || target === dragEl) return;
+
+  const rect = target.getBoundingClientRect();
+  const depois =
+    (touch.clientY - rect.top) > rect.height / 2 ||
+    (touch.clientX - rect.left) > rect.width / 2;
+
+  if (depois) {
+    target.after(dragEl);
+  } else {
+    target.before(dragEl);
+  }
+});
+
+  }); // 🔴 FECHA cards.forEach
+} // 🔴 FECHA ativarOrdenacao
+
+
+
+  
+async function salvarNovaOrdem() {
+  if (search.value || filtroTipo.value) {
+    alert("Remova os filtros para reordenar os itens.");
+    carregar();
+    return;
+  }
+
+  const cards = document.querySelectorAll(".item");
+
+  const updates = [...cards].map((card, index) => ({
+    id: card.dataset.id,
+    ordem_exibicao: index + 1
+  }));
+
+  updates.forEach(u => {
+    const item = itens.find(i => i.id === u.id);
+    if (item) item.ordem_exibicao = u.ordem_exibicao;
+  });
+
+  const { error } = await sb.rpc("atualizar_ordem", {
+    itens: updates
+  });
+
+  if (error) {
+    console.error("Erro ao salvar ordem:", error);
+    alert("Erro ao salvar a ordem dos itens");
+    carregar();
+  }
+}
+
+
+  
+
+
+
+
+
+
+  
+function editar(id){
+ const i=itens.find(x=>x.id===id);
+ editId=id;
+ formTitle.innerText="Editar item";
+ tipo.value=i.tipo;toggleTipo();
+ nome.value=i.nome;
+ descricao.value=i.descricao;
+ categoria.value=i.categoria||"";
+
+
+  
+preco.value = Number(i.preco).toLocaleString('pt-BR',{
+  minimumFractionDigits:2,
+  maximumFractionDigits:2
+});
+
+custo.value = i.custo
+  ? Number(i.custo).toLocaleString('pt-BR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    })
+  : "";
+
+precoPromo.value = i.preco_promocional
+  ? Number(i.preco_promocional).toLocaleString('pt-BR',{
+      minimumFractionDigits:2,
+      maximumFractionDigits:2
+    })
+  : "";
+
+
+
+  
+ promoAtiva.checked=i.promocao_ativa;
+ precoPromo.disabled = !i.promocao_ativa;
+ duracao.value=i.duracao_minutos||"";
+pgOnline.checked = pagamentoOnlineAtivo ? i.pg_online : false;
+ controlaEstoque.checked=i.controla_estoque;
+ estoqueAtual.value=i.estoque_atual||"";
+ estoqueMinimo.value=i.estoque_minimo||"";
+ ordem.value=i.ordem_exibicao||0;
+ ativo.checked=i.ativo;
+ obs.value=i.observacoes_internas||"";
+preview.innerHTML = "";
+preview.style.display = "flex";
+preview.style.flexDirection = "column";
+preview.style.gap = "8px";
+
+if (i.imagens) {
+  i.imagens.split(", ").forEach(url => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.style.width = "100%";
+    img.style.borderRadius = "12px";
+    preview.appendChild(img);
+  });
+} else if (i.imagem_url) {
+  preview.innerHTML = `
+    <img src="${i.imagem_url}" style="width:100%;border-radius:12px">
+  `;
+}
+
+abrirModalEditar();
+document.getElementById("btnExcluir").style.display = "block";
+}
+
+
+
+
+
+
+  
+function abrirModalNovo(){
+  editId = null;
+  blobs = []; // ✅ LIMPA IMAGENS ANTERIORES
+  formTitle.innerText = "Novo item";
+
+  nome.value = "";
+  descricao.value = "";
+  categoria.value = "";
+  obs.value = "";
+
+  preco.value = "";
+  custo.value = "";
+  precoPromo.value = "";
+
+  promoAtiva.checked = false;
+  precoPromo.disabled = true;
+
+  ativo.checked = true;
+  pgOnline.checked = false;
+  controlaEstoque.checked = false;
+
+  duracao.value = "";
+  estoqueAtual.value = "";
+  estoqueMinimo.value = "";
+  ordem.value = "";
+
+  tipo.value = "SERVICO";
+  toggleTipo();
+
+  preview.style.display = "none";
+  preview.src = "";
+  blob = null;
+document.getElementById("btnExcluir").style.display = "none";
+atualizarBotaoIA();
+modal.classList.add("show");
+}
+function abrirModalEditar(){
+  atualizarBotaoIA();
+
+  modal.classList.add("show");
+}
+
+
+
+  
+function fecharModal(){modal.classList.remove("show");editId=null;blob=null;preview.style.display="none"}
+
+// 🔎 FILTRO DE BUSCA (texto)
+search.addEventListener("input", () => {
+  render();
+});
+
+// 🧩 FILTRO POR TIPO (select)
+filtroTipo.addEventListener("change", () => {
+  render();
+});
+
+// 📸 CAPTURA DA IMAGEM (ESTE ERA O QUE FALTAVA)
+imagem.addEventListener("change", () => {
+  const files = Array.from(imagem.files);
+  if (!files.length) return;
+
+  let maxFotos = 1;
+
+  if (planoUsuario === "MASTER") {
+    maxFotos = 3;
+  } else if (planoUsuario === "PROFISSIONAL") {
+    maxFotos = 2;
+  }
+
+  if (files.length > maxFotos) {
+    alert(`Seu plano ${planoUsuario} permite até ${maxFotos} imagem(ns).`);
+    imagem.value = "";
+    return;
+  }
+
+  // Guarda todos os arquivos
+  blobs = files;
+
+  // Exibe múltiplas imagens no preview
+  preview.innerHTML = "";
+  preview.style.display = "flex";
+  preview.style.flexDirection = "column";
+  preview.style.gap = "8px";
+
+  files.forEach(file => {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.style.width = "100%";
+    img.style.borderRadius = "12px";
+    preview.appendChild(img);
+  });
+
+  atualizarBotaoIA();
+});
+
+
+  
+async function confirmarExclusao(){
+  if(!editId) return;
+
+  const ok = confirm(
+    "Tem certeza que deseja excluir este item?\n\nEssa ação não poderá ser desfeita."
+  );
+
+  if(!ok) return;
+
+  loading.style.display = "flex";
+
+  // pega item atual
+  const item = itens.find(i => i.id === editId);
+
+  // remove registro do banco
+  await sb
+    .from("produtos_servicos")
+    .delete()
+    .eq("id", editId);
+
+  // remove imagem do storage (se existir)
+  if(item?.imagem_url){
+    const path = item.imagem_url
+      .split("/produtos/")[1]
+      ?.split("?")[0];
+
+    if(path){
+      await sb.storage
+        .from("produtos")
+        .remove([path]);
+    }
+  }
+
+  loading.style.display = "none";
+  fecharModal();
+  carregar();
+}
+
+
+  
+</script>
+
+</body>
+</html>

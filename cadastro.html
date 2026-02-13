@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+<title>Cadastrar negócio</title>
+
+  
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<meta name="theme-color" content="#ff6a00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agenda Fácil">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --radius:22px;
+  --danger:#c62828;
+  --muted:#6b7280;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  background:#000;
+}
+
+/* ===== FUNDO COM FOTO ===== */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=1600&q=80")
+  center/cover no-repeat;
+  position:relative;
+  color:#fff;
+}
+.left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    120deg,
+    rgba(0,0,0,.75),
+    rgba(0,0,0,.35)
+  );
+}
+.left div{
+  position:relative;
+  z-index:2;
+  padding:80px;
+}
+.left span{color:var(--primary)}
+
+/* ===== ÁREA DO CARD ===== */
+.right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+}
+
+.card{
+  width:100%;
+  max-width:460px;
+  padding:44px;
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.card small{
+  color:var(--primary);
+  font-weight:600;
+}
+
+.card h2{
+  margin:10px 0 6px;
+}
+
+.card p{
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* ===== FORM ===== */
+input,select{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+  text-transform:uppercase;
+}
+
+input[type="email"],
+input[type="password"]{
+  text-transform:none;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+}
+
+/* ===== ERROS ===== */
+.error{
+  background:#ffe5e5;
+  color:var(--danger);
+  padding:12px;
+  border-radius:12px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+
+/* ===== OVERLAY / MODAIS ===== */
+#overlay,#modal,#iosModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal-box{
+  background:#fff;
+  padding:32px;
+  border-radius:22px;
+  text-align:center;
+  max-width:360px;
+}
+
+.modal-box h3{
+  margin-bottom:8px;
+}
+
+.modal-box p{
+  color:var(--muted);
+  font-size:14px;
+  margin-bottom:16px;
+}
+
+.modal-box button{
+  margin-top:10px;
+}
+
+.secondary{
+  background:#e5e7eb;
+  color:#111;
+}
+
+/* ========================= */
+/* 📱 MOBILE FIRST (CELULAR) */
+/* ========================= */
+@media (max-width: 900px){
+
+  body{
+    grid-template-columns:1fr;
+    overflow:hidden;
+  }
+
+  .left{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    filter:blur(7px);
+    transform:scale(1.08);
+  }
+
+  .left::after{
+    background:rgba(0,0,0,.55);
+  }
+
+  .left div{
+    display:none;
+  }
+
+  .right{
+    position:relative;
+    z-index:2;
+    min-height:100vh;
+    padding:24px 14px env(safe-area-inset-bottom);
+    align-items:flex-end;
+    background:transparent;
+  }
+
+  .card{
+    width:100%;
+    max-width:520px;
+    padding:28px 22px 30px;
+    border-radius:28px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.25),
+      0 10px 30px rgba(0,0,0,.12);
+    animation:slideUp .4s ease;
+  }
+}
+
+/* ANIMAÇÃO */
+@keyframes slideUp{
+  from{
+    transform:translateY(40px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="modal-box">Salvando cadastro…</div>
+</div>
+
+<!-- MODAL SUCESSO -->
+<div id="modal">
+  <div class="modal-box">
+    <h3>Cadastro realizado</h3>
+    <p>Agora você pode instalar o Agenda Fácil como app.</p>
+    <button class="secondary" onclick="irLogin()">Ir para login</button>
+  </div>
+</div>
+
+<!-- FUNDO -->
+<div class="left">
+  <div class="content">
+    <h1>Centralize a gestão<br><span>do seu negócio</span></h1>
+    <p>
+      Plataforma profissional para agendamentos, clientes, vendas e controle operacional.
+      Funciona em qualquer dispositivo, sem complicação.
+    </p>
+  </div>
+</div>
+
+<!-- CARD -->
+<div class="right">
+  <div class="card">
+
+    <small>Acesso à plataforma</small>
+    <h2>Cadastrar negócio</h2>
+    <p>Leva menos de 1 minuto</p>
+
+    <div id="errorBox" class="error"></div>
+
+    <form onsubmit="cadastrar(event)">
+      <input id="responsavel" placeholder="Nome do responsável" required>
+<input
+  id="whatsapp"
+  placeholder="WhatsApp (DDD + número)"
+  inputmode="numeric"
+  maxlength="15"
+  required
+>
+      <input id="negocio" placeholder="Nome do negócio" required>
+
+<select id="tipo" required>
+  <option value="">Tipo do negócio</option>
+</select>
+
+
+      <input id="cidade" placeholder="Cidade" required>
+      <input id="uf" placeholder="UF" maxlength="2" required>
+
+      <input id="email" type="email" placeholder="E-mail" required>
+      <input id="senha" type="password" placeholder="Senha (mín. 6)" minlength="6" required>
+
+      <button>Criar conta</button>
+    </form>
+
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+async function carregarTipos() {
+ const { data, error } = await sb
+  .from("tipos_loja")
+  .select("nome")
+  .order("nome");
+
+
+  if (error) {
+    console.error("Erro ao carregar tipos:", error.message);
+    return;
+  }
+
+  const select = document.getElementById("tipo");
+  select.innerHTML = `<option value="">Tipo do negócio</option>`;
+
+data.forEach(t => {
+  const opt = document.createElement("option");
+  opt.value = t.nome;      // ex: STUDIO
+  opt.textContent = t.nome;
+  select.appendChild(opt);
+});
+
+}
+
+document.addEventListener("DOMContentLoaded", carregarTipos);
+/* ===============================
+   📱 MÁSCARA WHATSAPP (BR)
+   Formato: (99) 99999-9999
+=============================== */
+const whatsappInput = document.getElementById("whatsapp");
+
+whatsappInput.addEventListener("input", e => {
+  let v = e.target.value.replace(/\D/g, "");
+
+  if (v.length > 11) v = v.slice(0, 11);
+
+  if (v.length <= 10) {
+    // Fixo: (99) 9999-9999
+    v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+    v = v.replace(/(\d{4})(\d)/, "$1-$2");
+  } else {
+    // Celular: (99) 99999-9999
+    v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+    v = v.replace(/(\d{5})(\d)/, "$1-$2");
+  }
+
+  e.target.value = v;
+});
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+async function cadastrar(e){
+  e.preventDefault();
+
+  await sb.auth.signOut(); // 🔒 garante cadastro limpo
+
+  overlay.style.display = "flex";
+  errorBox.style.display = "none";
+
+  const emailValue = email.value.trim().toLowerCase();
+  const senhaValue = senha.value.trim();
+
+  /* 1️⃣ CRIA USUÁRIO (AUTH) */
+  const { data, error } = await sb.auth.signUp({
+    email: emailValue,
+    password: senhaValue
+  });
+
+  if(error){
+    overlay.style.display = "none";
+    errorBox.style.display = "block";
+    errorBox.innerText = error.message;
+    return;
+  }
+
+  const userId = data.user.id;
+
+  /* 2️⃣ CRIA PERFIL (UPSERT + SLUG ÚNICO) */
+  const slug = `${slugify(negocio.value)}-${userId.slice(0,6)}`;
+
+const { error: erroPerfil } = await sb
+  .from("user_profile")
+  .upsert({
+    user_id: userId,
+    responsavel: responsavel.value.trim(),
+    whatsapp: whatsapp.value.replace(/\D/g,''),
+    negocio: negocio.value.trim(),
+    tipo: tipo.value, // 🔒 IGUAL AO HTML ANTIGO
+    cidade: cidade.value.trim(),
+    uf: uf.value.trim().toUpperCase(),
+    email_contato: emailValue,
+    slug: slug,
+    status: "trial",
+    trial_ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000)
+  }, { onConflict: "user_id" });
+
+  overlay.style.display = "none";
+
+  if(erroPerfil){
+    errorBox.style.display = "block";
+    errorBox.innerText = "Conta criada, mas erro ao salvar o perfil.";
+    console.error(erroPerfil);
+    return;
+  }
+
+  /* 3️⃣ SUCESSO */
+  modal.style.display = "flex";
+}
+
+function irLogin(){
+  location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+
+<title>Entrar • Agenda Fácil</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agenda Fácil">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<meta name="theme-color" content="#ff6a00">
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --border:#e5e7eb;
+  --radius:22px;
+  --danger:#c62828;
+  --muted:#6b7280;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Inter;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  background:#000;
+}
+
+/* ===== FUNDO COM FOTO ===== */
+.left{
+  background:url("https://images.unsplash.com/photo-1600948836101-f9ffda59d250?auto=format&fit=crop&w=1600&q=80")
+  center/cover no-repeat;
+  position:relative;
+  color:#fff;
+}
+.left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    120deg,
+    rgba(0,0,0,.75),
+    rgba(0,0,0,.35)
+  );
+}
+.left div{
+  position:relative;
+  z-index:2;
+  padding:80px;
+}
+.left span{color:var(--primary)}
+
+/* ===== ÁREA DO CARD ===== */
+.right{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+}
+
+.card{
+  width:100%;
+  max-width:460px;
+  padding:44px;
+  background:#fff;
+  border-radius:var(--radius);
+  box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.card h2{
+  margin-bottom:6px;
+}
+
+.card p{
+  color:var(--muted);
+  margin-bottom:18px;
+}
+
+/* ===== FORM ===== */
+input{
+  width:100%;
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  font-size:14px;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:999px;
+  background:linear-gradient(135deg,#ff6a00,#ff9a57);
+  color:#fff;
+  font-weight:800;
+  font-size:15px;
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+
+/* LOADING */
+button.loading{
+  pointer-events:none;
+  opacity:.85;
+}
+button.loading::after{
+  content:"";
+  width:22px;
+  height:22px;
+  border:3px solid rgba(255,255,255,.4);
+  border-top-color:#fff;
+  border-radius:50%;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
+
+/* ===== ERRO ===== */
+.msg{
+  background:#ffe5e5;
+  color:var(--danger);
+  padding:12px;
+  border-radius:12px;
+  font-size:14px;
+  margin-bottom:14px;
+  display:none;
+}
+
+/* LINKS */
+.links{
+  text-align:center;
+  margin-top:18px;
+  font-size:13px;
+}
+.links a{
+  display:block;
+  color:var(--primary);
+  text-decoration:none;
+  margin-top:8px;
+}
+
+/* ===== MODAIS ===== */
+#overlay,#welcome{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+
+.modal{
+  background:#fff;
+  padding:36px;
+  border-radius:22px;
+  text-align:center;
+  max-width:380px;
+}
+
+.modal h3{
+  margin-bottom:6px;
+}
+.modal p{
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* ========================= */
+/* 📱 MOBILE FIRST (CELULAR) */
+/* ========================= */
+@media (max-width: 900px){
+
+  body{
+    grid-template-columns:1fr;
+    overflow:hidden;
+  }
+
+  .left{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    filter:blur(7px);
+    transform:scale(1.08);
+  }
+
+  .left::after{
+    background:rgba(0,0,0,.55);
+  }
+
+  .left div{
+    display:none;
+  }
+
+  .right{
+    position:relative;
+    z-index:2;
+    min-height:100vh;
+    padding:24px 14px env(safe-area-inset-bottom);
+    align-items:flex-end;
+    background:transparent;
+  }
+
+  .card{
+    width:100%;
+    max-width:520px;
+    padding:28px 22px 30px;
+    border-radius:28px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,.25),
+      0 10px 30px rgba(0,0,0,.12);
+    animation:slideUp .4s ease;
+  }
+}
+
+/* ANIMAÇÃO */
+@keyframes slideUp{
+  from{
+    transform:translateY(40px);
+    opacity:0;
+  }
+  to{
+    transform:translateY(0);
+    opacity:1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- OVERLAY -->
+<div id="overlay">
+  <div class="modal">Validando acesso…</div>
+</div>
+
+<!-- WELCOME -->
+<div id="welcome">
+  <div class="modal">
+    <h3 id="welcomeTitle">Bem-vindo 👋</h3>
+    <p>Estamos preparando seu painel</p>
+  </div>
+</div>
+
+<!-- FUNDO -->
+<div class="left">
+  <div>
+    <h1>A gestão do seu salão<br>começa com um <span>login</span></h1>
+    <p>Agenda, clientes e controle em um só lugar.</p>
+  </div>
+</div>
+
+<!-- CARD -->
+<div class="right">
+  <div class="card">
+
+    <h2>Entrar</h2>
+    <p>Use seu e-mail e senha para continuar</p>
+
+    <div id="errorBox" class="msg"></div>
+
+    <form id="loginForm">
+      <input id="email" type="email" placeholder="E-mail" required>
+      <input id="senha" type="password" placeholder="Senha" required>
+      <button id="btnLogin" type="submit">Entrar</button>
+    </form>
+
+    <div class="links">
+      <a href="#" id="resetSenha">Esqueci minha senha</a>
+      <a href="cadastro.html">Cadastrar meu negócio</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const overlay = document.getElementById("overlay");
+const welcome = document.getElementById("welcome");
+const errorBox = document.getElementById("errorBox");
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+const btnLogin = document.getElementById("btnLogin");
+
+/* LOGIN */
+document.getElementById("loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  errorBox.style.display="none";
+  btnLogin.classList.add("loading");
+  overlay.style.display="flex";
+
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: emailInput.value.trim().toLowerCase(),
+    password: senhaInput.value.trim()
+  });
+
+  if(error){
+    overlay.style.display="none";
+    btnLogin.classList.remove("loading");
+    errorBox.innerText="E-mail ou senha inválidos.";
+    errorBox.style.display="block";
+    return;
+  }
+
+ const { data: profile, error: profileError } = await sb
+  .from("user_profile")
+  .select("negocio, responsavel, status, fim_teste")
+  .eq("user_id", data.user.id)
+  .single();
+
+overlay.style.display = "none";
+
+if (profileError || !profile) {
+  errorBox.innerText = "Erro ao carregar perfil.";
+  errorBox.style.display = "block";
+  btnLogin.classList.remove("loading");
+  return;
+}
+
+/* 🚫 TESTE ENCERRADO */
+if (profile.status === "FIMTESTE") {
+  window.location.replace("planos.html");
+  return;
+}
+
+/* 🎉 PRIMEIRO LOGIN / TESTE ATIVO */
+welcome.style.display = "flex";
+
+if (profile.status === "TESTE") {
+  document.getElementById("welcomeTitle").innerText =
+    `Bem-vindo, ${profile.responsavel.split(" ")[0]} 👋`;
+
+  welcome.querySelector("p").innerText =
+    "Você ganhou 10 dias grátis para experimentar todas as funcionalidades do Agenda Fácil.";
+} else {
+  document.getElementById("welcomeTitle").innerText =
+    `Bem-vindo ao ${profile.negocio || "Agenda Fácil"} 👋`;
+
+  welcome.querySelector("p").innerText =
+    "Estamos preparando seu painel.";
+}
+
+/* REDIRECIONAMENTO */
+setTimeout(() => {
+  window.location.replace("dashboard.html");
+}, 2000);
+});
+
+/* RESET SENHA */
+document.getElementById("resetSenha").addEventListener("click", async e=>{
+  e.preventDefault();
+  if(!emailInput.value){
+    errorBox.innerText="Informe seu e-mail.";
+    errorBox.style.display="block";
+    return;
+  }
+
+  overlay.style.display="flex";
+  await sb.auth.resetPasswordForEmail(
+    emailInput.value.trim().toLowerCase(),
+    { redirectTo: location.origin + "/login.html" }
+  );
+  overlay.style.display="none";
+
+  errorBox.innerText="E-mail de recuperação enviado.";
+  errorBox.style.display="block";
+});
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/clena/sw.js")
+      .then(reg => console.log("SW registrado:", reg.scope))
+      .catch(err => console.error("SW erro:", err));
+  });
+}
+</script>
+
+</body>
+</html>

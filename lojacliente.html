@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Produtos</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const lojaId = params.get("l");
+  if(!lojaId) return;
+
+  const tema = localStorage.getItem("loja_tema_" + lojaId);
+  if(!tema) return;
+
+  try{
+    const cfg = JSON.parse(tema);
+    const root = document.documentElement;
+    if(cfg.primary) root.style.setProperty("--primary", cfg.primary);
+    if(cfg.secondary) root.style.setProperty("--primary-2", cfg.secondary);
+    if(cfg.text) root.style.setProperty("--text", cfg.text);
+  }catch(e){}
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --primary-2:#ff9a57;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box;font-family:Inter}
+body{margin:0;background:var(--bg);padding:16px}
+
+/* SEARCH */
+.search{margin:16px 0}
+.search input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+}
+
+/* FILTROS */
+.filtros{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.filtro{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.filtro.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+@media(min-width:768px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(min-width:1200px){
+  .grid{grid-template-columns:repeat(6,1fr)}
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+.card img{
+  width:100%;
+  height:120px;
+  object-fit:cover;
+}
+.card-body{padding:12px}
+.card-body strong{display:block;margin-bottom:6px}
+.meta{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  color:var(--muted);
+}
+.price{font-weight:900}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  padding:16px;
+}
+.modal-box{
+  background:#fff;
+  border-radius:22px;
+  width:100%;
+  max-width:860px;
+  max-height:90vh;
+  overflow:hidden;
+  display:flex;
+}
+.modal-img{width:45%}
+.modal-img img{width:100%;height:100%;object-fit:cover}
+.modal-content{width:55%;padding:20px;overflow-y:auto}
+.modal-preco{font-size:18px;font-weight:900;color:var(--primary)}
+.btn{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:999px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:900;
+}
+.btn-sec{
+  width:100%;
+  padding:12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:700;
+}
+</style>
+</head>
+
+<body>
+
+<div class="search">
+  <input id="busca" placeholder="Buscar produto">
+</div>
+
+<div class="filtros" id="filtros"></div>
+
+<div id="grid" class="grid"></div>
+
+<!-- MODAL PRODUTO -->
+<div class="modal" id="modalProduto" onclick="fecharProduto()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-img"><img id="mpImagem"></div>
+    <div class="modal-content">
+      <h2 id="mpNome"></h2>
+      <p id="mpDescricao"></p>
+      <div class="modal-preco">R$ <span id="mpPreco"></span></div>
+
+      <label>Observação (opcional)</label>
+      <textarea id="mpObsCarrinho"
+        style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border)"></textarea>
+
+      <button class="btn" onclick="adicionarAoCarrinho()">Adicionar ao carrinho</button>
+      <button class="btn-sec" onclick="fecharProduto()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const lojaId = new URLSearchParams(location.search).get("l");
+const grid = document.getElementById("grid");
+const filtros = document.getElementById("filtros");
+const busca = document.getElementById("busca");
+
+let produtos = [];
+let categoriaAtiva = "ALL";
+let produtoAtual = null;
+
+async function load(){
+  const { data } = await sb
+    .from("produtos_servicos")
+    .select("*")
+    .eq("user_id", lojaId)
+    .eq("ativo", true)
+    .eq("tipo", "PRODUTO")
+    .order("ordem_exibicao");
+
+  produtos = data || [];
+  montarFiltros();
+  render();
+}
+
+function montarFiltros(){
+  const categorias = [...new Set(produtos.map(p=>p.categoria).filter(Boolean))];
+  filtros.innerHTML =
+    `<div class="filtro active" onclick="setCategoria('ALL',this)">Todos</div>` +
+    categorias.map(c=>`
+      <div class="filtro" onclick="setCategoria('${c}',this)">${c}</div>
+    `).join("");
+}
+
+function setCategoria(cat,el){
+  categoriaAtiva = cat;
+  document.querySelectorAll(".filtro").forEach(f=>f.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function render(){
+  const q = busca.value.toLowerCase();
+  grid.innerHTML = produtos.filter(p=>{
+    if(categoriaAtiva!=="ALL" && p.categoria!==categoriaAtiva) return false;
+    if(!p.nome.toLowerCase().includes(q)) return false;
+    return true;
+  }).map(p=>`
+    <div class="card" onclick="abrirProduto('${p.id}')">
+      <img src="${p.imagem_url||''}">
+      <div class="card-body">
+        <strong>${p.nome}</strong>
+        <div class="meta">
+          <span>📦 ${p.controla_estoque ? p.estoque_atual : 'Livre'}</span>
+          <span class="price">
+            R$ ${Number(p.preco).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+          </span>
+        </div>
+      </div>
+    </div>
+  `).join("") || "<p>Nenhum produto encontrado</p>";
+}
+
+busca.addEventListener("input", render);
+
+function abrirProduto(id){
+  produtoAtual = produtos.find(p=>p.id===id);
+  mpImagem.src = produtoAtual.imagem_url||"";
+  mpNome.innerText = produtoAtual.nome;
+  mpDescricao.innerText = produtoAtual.descricao||"";
+  mpPreco.innerText = Number(produtoAtual.preco).toLocaleString("pt-BR",{minimumFractionDigits:2});
+  modalProduto.style.display="flex";
+}
+
+function fecharProduto(){modalProduto.style.display="none"}
+
+function adicionarAoCarrinho(){
+  const key = "carrinho_" + lojaId;
+  const carrinho = JSON.parse(localStorage.getItem(key)||"[]");
+  const existente = carrinho.find(i=>i.produto_id===produtoAtual.id);
+  existente
+    ? existente.quantidade++
+    : carrinho.push({
+        produto_id:produtoAtual.id,
+        nome:produtoAtual.nome,
+        preco:produtoAtual.preco,
+        quantidade:1,
+        comentario:mpObsCarrinho.value
+      });
+  localStorage.setItem(key,JSON.stringify(carrinho));
+  fecharProduto();
+}
+
+load();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>A Receber • Agenda Fácil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e5e7eb;
+  --text:#111827;
+  --muted:#6b7280;
+  --success:#16a34a;
+}
+*{box-sizing:border-box;font-family:Inter;margin:0;padding:0}
+html,body{height:100%;background:var(--bg)}
+.page{height:100%;display:flex;flex-direction:column}
+.header{padding:16px}
+.header h2{font-size:18px;font-weight:900}
+.header p{font-size:12px;color:var(--muted)}
+.content{flex:1;overflow:auto;padding:16px}
+.list{display:grid;gap:12px}
+
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.04);
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:12px;
+  align-items:center;
+}
+
+.avatar{
+  width:54px;height:54px;border-radius:50%;
+  background:#eee center/cover no-repeat;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:#fff;
+  background-image:linear-gradient(135deg,#ff6a00,#ff9a57);
+}
+
+.info h4{font-size:14px;font-weight:900}
+.info .muted{font-size:12px;color:var(--muted);margin-top:2px}
+.info .line{font-size:12px;margin-top:4px}
+
+.price{font-size:14px;font-weight:900;color:#16a34a;white-space:nowrap}
+
+.badge{
+  display:inline-block;padding:6px 10px;border-radius:999px;
+  font-size:11px;font-weight:900;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;margin-top:6px;
+}
+
+.btn{
+  border:none;border-radius:999px;padding:10px 14px;font-weight:900;cursor:pointer;white-space:nowrap
+}
+.btn-ok{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff}
+
+.empty{text-align:center;color:var(--muted);padding:32px 16px}
+.footer{padding:12px 16px;border-top:1px solid var(--border);background:#fff;display:flex;justify-content:space-between}
+.total{font-weight:900}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h2>A Receber</h2>
+    <p>Crediários aguardando pagamento</p>
+  </div>
+
+  <div class="content">
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty" style="display:none">Nenhum crediário pendente 🎉</div>
+  </div>
+
+  <div class="footer">
+    <div class="total" id="total">Total a receber: R$ 0,00</div>
+    <button class="btn" onclick="window.location.reload()">Atualizar</button>
+  </div>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const ctx = window.parent?.APP_CONTEXT || {};
+const userId = ctx.userId;
+
+function moeda(n){ return Number(n||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function dataFmt(d){ return d ? new Date(d).toLocaleDateString("pt-BR") : "-"; }
+
+function getServicoNome(servicosJson){
+  try{
+    const arr = JSON.parse(servicosJson || "[]");
+    return arr[0]?.nome || "Serviço";
+  }catch{ return "Serviço"; }
+}
+
+async function listar(){
+  const { data:ag, error } = await sb
+    .from("agendamentos")
+    .select("id, data, cliente_nome, cliente_id, valor_total, status, servicos")
+    .eq("user_id", userId)
+    .eq("status", "CREDIARIO")
+    .order("data",{ascending:true});
+
+  const list = document.getElementById("list");
+  const empty = document.getElementById("empty");
+  list.innerHTML = "";
+  let total = 0;
+
+  if(!ag || !ag.length){
+    empty.style.display = "block";
+    document.getElementById("total").innerText = "Total a receber: R$ 0,00";
+    return;
+  }
+
+  empty.style.display = "none";
+
+  for(const r of ag){
+    total += Number(r.valor_total||0);
+
+    let foto = null;
+    if(r.cliente_id){
+      const { data:cli } = await sb
+        .from("clientes_profile")
+        .select("avatar_url")
+        .eq("id", r.cliente_id)
+        .single();
+      foto = cli?.avatar_url || null;
+    }
+
+    const letra = (r.cliente_nome||"?")[0].toUpperCase();
+
+    const el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML = `
+      <div class="avatar" style="${foto ? `background-image:url('${foto}')` : ""}">
+        ${foto ? "" : letra}
+      </div>
+
+      <div class="info">
+        <h4>${r.cliente_nome || "Cliente"}</h4>
+        <div class="muted">${getServicoNome(r.servicos)}</div>
+        <div class="line">🗓 ${dataFmt(r.data)}</div>
+        <span class="badge">CREDIARIO</span>
+      </div>
+
+      <div style="text-align:right">
+        <div class="price">${moeda(r.valor_total)}</div>
+        <button class="btn btn-ok" onclick="marcarConcluido('${r.id}')">Marcar pago</button>
+      </div>
+    `;
+    list.appendChild(el);
+  }
+
+  document.getElementById("total").innerText = "Total a receber: " + moeda(total);
+}
+
+async function marcarConcluido(id){
+  if(!confirm("Confirmar recebimento e marcar como concluído?")) return;
+
+  await sb.from("agendamentos")
+    .update({ status: "CONCLUIDO" })
+    .eq("id", id);
+
+  listar();
+}
+
+listar();
+</script>
+</body>
+</html>

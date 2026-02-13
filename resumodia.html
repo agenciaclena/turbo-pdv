@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Resumo do Dia</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --primary:#ff6a00;
+  --bg:#f6f7fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --radius:18px;
+  --green:#16a34a;
+  --blue:#2563eb;
+}
+
+*{
+  box-sizing:border-box;
+  font-family:Inter;
+}
+
+html, body{
+  margin:0;
+  width:100%;
+  height:100%;
+}
+
+body{
+  background:var(--bg);
+  overflow-y:auto;
+}
+
+/* CONTAINER */
+.container{
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+/* CARD TOPO */
+.card-topo{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:16px;
+  box-shadow:0 8px 22px rgba(0,0,0,.06);
+  display:grid;
+  grid-template-columns:1fr 1fr 110px;
+  gap:12px;
+  align-items:center;
+}
+
+.kpi small{
+  color:var(--muted);
+  font-weight:600;
+  font-size:12px;
+}
+.kpi h2{
+  margin:6px 0 2px;
+  font-size:22px;
+  font-weight:800;
+}
+.percentual{
+  font-size:12px;
+  font-weight:700;
+  color:var(--blue);
+}
+
+/* GRAFICO */
+.grafico-box{
+  width:110px;
+  height:110px;
+}
+.grafico-box canvas{
+  width:100%!important;
+  height:100%!important;
+}
+
+/* LISTA */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:16px;
+  box-shadow:0 8px 22px rgba(0,0,0,.06);
+}
+
+.lista{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.item{
+  display:grid;
+  grid-template-columns:52px 1fr auto;
+  gap:12px;
+  align-items:center;
+  background:#f9fafb;
+  padding:12px;
+  border-radius:14px;
+}
+
+.hora{
+  width:52px;
+  height:52px;
+  border-radius:12px;
+  background:#f1f5f9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  color:var(--primary);
+}
+
+.info{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.info strong{
+  font-size:13px;
+}
+
+.info small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.valor{
+  font-weight:800;
+  color:var(--green);
+  font-size:13px;
+  text-align:right;
+}
+
+.whats{
+  margin-top:4px;
+  background:#dcfce7;
+  color:#166534;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+  text-decoration:none;
+  display:inline-block;
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:24px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<!-- FILTRO MES/ANO -->
+<div class="card" style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:center">
+  <div>
+    <small style="font-weight:700">Mês</small>
+    <select id="filtroMes" style="width:100%;padding:10px;border-radius:12px;border:1px solid #e5e7eb">
+      <option value="0">Janeiro</option>
+      <option value="1">Fevereiro</option>
+      <option value="2">Março</option>
+      <option value="3">Abril</option>
+      <option value="4">Maio</option>
+      <option value="5">Junho</option>
+      <option value="6">Julho</option>
+      <option value="7">Agosto</option>
+      <option value="8">Setembro</option>
+      <option value="9">Outubro</option>
+      <option value="10">Novembro</option>
+      <option value="11">Dezembro</option>
+    </select>
+  </div>
+
+  <div>
+    <small style="font-weight:700">Ano</small>
+    <select id="filtroAno" style="width:100%;padding:10px;border-radius:12px;border:1px solid #e5e7eb">
+      <option>2024</option>
+      <option selected>2025</option>
+      <option>2026</option>
+    </select>
+  </div>
+
+  <button onclick="aplicarFiltroMes()" style="padding:12px 16px;border-radius:12px;border:none;background:#ff6a00;color:#fff;font-weight:800">
+    Aplicar
+  </button>
+</div>
+  <!-- CARD TOPO -->
+  <div class="card-topo">
+
+    <div class="kpi">
+<small id="labelDia">Total do dia</small>
+      <h2 id="totalDia">R$ 0,00</h2>
+      <div id="percentualDia" class="percentual">—</div>
+    </div>
+
+    <div class="kpi">
+      <small>Agendamentos</small>
+      <h2 id="qtdDia">0</h2>
+    </div>
+
+    <div class="grafico-box">
+      <canvas id="graficoDia"></canvas>
+    </div>
+
+  </div>
+
+  <!-- LISTA -->
+  <div class="card">
+    <small style="font-weight:700">Agendamentos do dia</small>
+    <div id="listaAgendamentos" class="lista"></div>
+  </div>
+
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://egxjgmzukjyyxmkukwub.supabase.co",
+  "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+
+const params = new URLSearchParams(location.search);
+let dataDia = params.get("data");
+const lojaId = params.get("loja") || localStorage.getItem("loja_id");
+const hoje = new Date();
+
+if(!dataDia){
+  dataDia = hoje.toLocaleDateString("en-CA"); // yyyy-mm-dd
+}
+
+
+// Preenche os filtros conforme a data atual/URL
+setTimeout(()=>{
+  const dFiltro = new Date(dataDia);
+  document.getElementById("filtroMes").value = dFiltro.getMonth();
+  document.getElementById("filtroAno").value = dFiltro.getFullYear();
+}, 0);
+const moeda = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function aplicarFiltroMes(){
+  const mes = Number(document.getElementById("filtroMes").value);
+  const ano = Number(document.getElementById("filtroAno").value);
+
+  const novaData = new Date(ano, mes, 1).toLocaleDateString("en-CA");
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("data", novaData);
+  window.location.href = url.toString();
+}
+
+let grafico;   // 👈 COLE AQUI
+  
+async function carregarResumo(){
+
+  const { data: dia } = await sb
+    .from("agendamentos")
+    .select("hora_inicio, cliente_nome, cliente_whatsapp, servicos, valor_total")
+    .eq("user_id", lojaId)
+    .eq("data", dataDia)
+    .in("status", ["CONFIRMADO","CONCLUIDO"])
+    .order("hora_inicio");
+
+  const totalDia = dia?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
+  document.getElementById("totalDia").innerText = moeda(totalDia);
+  document.getElementById("qtdDia").innerText = dia?.length || 0;
+document.getElementById("labelDia").innerText =
+  "Total do dia • " + new Date(dataDia).toLocaleDateString("pt-BR");
+  const lista = document.getElementById("listaAgendamentos");
+  lista.innerHTML = "";
+
+  if(!dia || dia.length === 0){
+    lista.innerHTML = `<div class="empty">Nenhum agendamento</div>`;
+  }else{
+    dia.forEach(a=>{
+      const servicos = Array.isArray(a.servicos)
+        ? a.servicos.map(s=>s.nome).join(", ")
+        : "Agendamento";
+
+      const whatsapp = a.cliente_whatsapp
+        ? `https://wa.me/55${a.cliente_whatsapp.replace(/\D/g,"")}`
+        : "";
+
+      lista.innerHTML += `
+        <div class="item">
+          <div class="hora">${a.hora_inicio.slice(0,5)}</div>
+          <div class="info">
+            <strong>${a.cliente_nome}</strong>
+            <small>${servicos}</small>
+          </div>
+          <div>
+            <div class="valor">${moeda(a.valor_total)}</div>
+            ${whatsapp ? `<a class="whats" target="_blank" href="${whatsapp}">Whats</a>` : ``}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  const d = new Date(dataDia);
+  const iniMes = new Date(d.getFullYear(), d.getMonth(), 1).toLocaleDateString("en-CA");
+  const fimMes = new Date(d.getFullYear(), d.getMonth()+1, 0).toLocaleDateString("en-CA");
+
+  const { data: mes } = await sb
+    .from("agendamentos")
+    .select("valor_total")
+    .eq("user_id", lojaId)
+    .gte("data", iniMes)
+    .lte("data", fimMes)
+    .in("status", ["CONFIRMADO","CONCLUIDO"]);
+
+  const totalMes = mes?.reduce((s,a)=>s+Number(a.valor_total||0),0) || 0;
+
+document.getElementById("percentualDia").innerText = totalMes
+  ? ((totalDia/totalMes)*100).toFixed(1) + "% do faturamento do mês"
+  : "Sem faturamento no mês";
+
+if(grafico) grafico.destroy();
+
+grafico = new Chart(document.getElementById("graficoDia"),{
+  type:"doughnut",
+    data:{
+      datasets:[{
+        data:[totalDia, Math.max(totalMes-totalDia,0)],
+        backgroundColor:["#ff6a00","#e5e7eb"],
+        borderWidth:0
+      }]
+    },
+    options:{
+      cutout:"70%",
+      plugins:{legend:{display:false},tooltip:{enabled:false}}
+    }
+  });
+}
+
+carregarResumo();
+</script>
+
+</body>
+</html>

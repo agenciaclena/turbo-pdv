@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-T97MS35TJ6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-T97MS35TJ6');
+</script>
+<title>Página de agendamentos</title>
+
+<meta name="viewport"
+  content="width=device-width,
+  initial-scale=1,
+  maximum-scale=1,
+  user-scalable=no,
+  viewport-fit=cover">
+<script>
+(function(){
+  const params = new URLSearchParams(location.search);
+  const lojaId = params.get("l");
+  if(!lojaId) return;
+
+  const tema = localStorage.getItem("loja_tema_" + lojaId);
+  if(!tema) return;
+
+  try{
+    const cfg = JSON.parse(tema);
+    const root = document.documentElement;
+
+    if(cfg.primary) root.style.setProperty("--primary", cfg.primary);
+    if(cfg.secondary) root.style.setProperty("--primary-2", cfg.secondary);
+    if(cfg.text) root.style.setProperty("--text", cfg.text);
+  }catch(e){}
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --primary: var(--primary, #ff6a00);
+  --primary-2: var(--primary-2, #ff9a57);
+  --bg:#f4f6fb;
+  --card:#fff;
+  --border:#e5e7eb;
+  --text: var(--text, #111827);
+  --muted:#6b7280; /* ✅ ADICIONE ESTA LINHA */
+  --header-bg:#000;
+}
+
+
+
+
+*{box-sizing:border-box;font-family:Inter}
+html,body{margin:0;background:var(--bg)}
+
+.header{
+  height:56px;
+  background:var(--header-bg);
+  color:#fff;
+  border-bottom:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  position:sticky;
+  top:0;
+}
+
+
+.section{
+  padding:18px 14px;
+}
+
+.title{
+  font-weight:800;
+  margin-bottom:10px;
+}
+
+.services{
+  display:flex;
+  gap:16px;
+  overflow-x:auto;
+}
+.services::-webkit-scrollbar{display:none}
+
+.service{
+  min-width:220px;
+  background:#fff;
+  border-radius:22px;
+  cursor:pointer;
+
+  border:4px solid transparent; /* BORDA BASE */
+  box-shadow:0 18px 44px rgba(0,0,0,.14);
+}
+
+.service.selected{
+border:5px solid var(--primary);
+  box-shadow:0 10px 26px rgba(255,106,0,.28);
+}
+
+
+
+.service img{
+  width:100%;
+  height:140px;
+  object-fit:cover;
+  border-top-left-radius:22px;
+  border-top-right-radius:22px;
+}
+
+
+.service-info{
+ padding:12px;
+}
+
+.service-name{font-weight:800;font-size:17px}
+.service-price{color:var(--primary);font-weight:700;margin-top:6px}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.item{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px 0;
+  text-align:center;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.item.selected{
+  background:#fff;
+  border:2px solid var(--primary);
+  box-shadow:0 6px 18px rgba(255,106,0,.25);
+}
+
+
+
+
+.item:hover{
+  background:#f9fafb;
+}
+
+
+.msg-final{
+  background:#fff;
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 18px 44px rgba(0,0,0,.18);
+  font-weight:700;
+}
+
+.hidden {
+  display: none;
+}
+
+
+
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.msg-final button{
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.msg-final button:first-child{
+  background:#2563eb;
+  color:#fff;
+}
+
+.msg-final button:last-child{
+  background:#e5e7eb;
+}
+.days-scroll{
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  padding-bottom:6px;
+}
+.days-scroll::-webkit-scrollbar{display:none}
+
+.days-scroll .item{
+  min-width:70px;
+}
+
+.btn-ver-datas{
+  margin-top:14px;
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+
+  background: var(--primary);
+  color: var(--text);
+
+  font-weight:800;
+  cursor:pointer;
+  transition: opacity .2s ease, filter .2s ease;
+}
+
+/* quando desabilitado */
+.btn-ver-datas:disabled{
+  background: var(--border);
+  color: var(--muted);
+  cursor:not-allowed;
+  opacity:.7;
+}
+
+/* feedback visual */
+.btn-ver-datas:active{
+  filter: brightness(.95);
+}
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+/* === MODAL PREMIUM CENTRALIZADO === */
+.modal-root{
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(3px);
+}
+
+.modal-card{
+  position: relative;
+  z-index: 10001;
+  width: min(420px, calc(100% - 32px));
+  background: #fff;
+  border-radius: 26px;
+  padding: 22px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.35);
+  animation: modalUp .25s ease;
+}
+
+@keyframes modalUp{
+  from{opacity:0; transform:translateY(30px) scale(.97)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+
+.modal-header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+.modal-avatar{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:18px;
+  box-shadow:0 8px 20px rgba(255,106,0,.45);
+}
+
+.modal-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+}
+
+.btn-primary{
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  color:#fff;
+  box-shadow:0 10px 24px rgba(255,106,0,.35);
+  cursor:pointer;
+}
+
+.btn-secondary{
+  padding:14px;
+  border-radius:999px;
+  border:none;
+  font-weight:800;
+  background:#f3f4f6;
+  cursor:pointer;
+}
+
+.btn-primary:active{ transform:scale(.98); }
+.btn-secondary:active{ transform:scale(.98); }
+
+/* 🔒 garante que nunca apareça no app do cliente */
+body:not([data-painel="1"]) #clienteModal {
+  display: none !important;
+}
+
+ @keyframes popIn {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+.chip-servico{
+  background:#fff;
+  border:2px solid var(--primary);
+  border-radius:999px;
+  padding:8px 14px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 6px 18px rgba(255,106,0,.25);
+  animation: popIn .18s ease;
+}
+.chip-servico .preco{
+  color:var(--primary);
+}
+.chip-servico button{
+  border:none;
+  background:transparent;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:900;
+  line-height:1;
+} 
+</style>
+</head>
+
+<body>
+
+<div class="header">Agendar Serviço</div>
+
+<div class="section">
+  <div class="title">Escolha um serviço</div>
+  <div class="services" id="services"></div>
+</div>
+
+<div class="section hidden" id="secSelecionados">
+  <div class="title">Serviços selecionados</div>
+<div id="resumoSelecionados" style="
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  gap:10px;
+">
+  <div id="contadorServicos" style="font-weight:800;color:#374151"></div>
+  <div id="totalServicos" style="font-weight:900;color:var(--primary)"></div>
+</div>
+  <div id="servicosSelecionados"
+       style="display:flex;gap:10px;flex-wrap:wrap">
+  </div>
+
+<button class="btn-ver-datas" onclick="confirmarServicos()">
+  Ver datas disponíveis
+</button>
+
+</div>
+
+
+  
+<div class="section hidden" id="secDays">
+  <div class="title">Escolha a data</div>
+  <div class="days-scroll" id="days"></div>
+</div>
+
+
+<div class="section hidden" id="secTimes">
+  <div class="title">Escolha o horário</div>
+  <div class="grid" id="times"></div>
+</div>
+<div class="section hidden" id="secConfirmar">
+  <button
+    id="btnConfirmar"
+    class="btn-ver-datas"
+    onclick="confirmarAgendamento()">
+    Confirmar agendamento
+  </button>
+</div>
+
+
+<div class="section" id="final"></div>
+
+<script>
+/* ================= SUPABASE ================= */
+const sb = supabase.createClient(
+ "https://egxjgmzukjyyxmkukwub.supabase.co",
+ "sb_publishable_EWwdrLOUk6KDHZGLuh4uRg_QDRtLeFi"
+);
+let usuarioLogado = null;
+let clienteDB = null;
+let confirmandoAgendamento = false; // 🔒 trava anti duplo clique
+async function verificarLogin(){
+  const { data: { session } } = await sb.auth.getSession();
+  usuarioLogado = session?.user || null;
+}
+sb.auth.onAuthStateChange((_event, session) => {
+  usuarioLogado = session?.user || null;
+});
+
+const params = new URLSearchParams(location.search);
+const lojaId = params.get("l");
+const servicoPreSelecionado = params.get("servico");
+const alterarId = params.get("alterar");
+const modoNovoPainel = params.get("novo") === "1";
+
+// 🔒 trava global: se estiver no app do cliente, nunca abre modal
+if(!modoNovoPainel){
+  window.abrirModal = () => {};
+}
+
+// 🔒 marca o body quando for painel da loja
+if(modoNovoPainel){
+  document.body.setAttribute("data-painel", "1");
+}
+;
+
+let dados = {
+  servicos: []
+};
+
+let duracaoTotal = 0;
+
+let DIAS_VALIDOS = [];
+
+let cursorData = null;
+let carregandoDias = false;
+const BLOCO_DIAS = 7;
+
+
+/* UTILS */
+const toMin = h => { const [a,b]=h.split(":").map(Number); return a*60+b; }
+const toHour = m => String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+function hojeLocal(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+
+async function carregarCliente(){
+  if(!usuarioLogado) return;
+
+  const { data } = await sb
+    .from("clientes_profile")
+    .select("nome, whatsapp, email")
+    .eq("id", usuarioLogado.id)
+    .maybeSingle();
+
+  clienteDB = data || null;
+}
+
+async function buscarClientesLoja(termo){
+  const termoNorm = normalizarTexto(termo);
+  if(termoNorm.length < 2) return [];
+
+  const { data, error } = await sb
+    .from("clientes_profile")
+    .select("id,nome,whatsapp,email,avatar_url")
+    .eq("loja_ativa", lojaId)   // UUID da loja (correto para seu banco)
+    .limit(80);
+
+  if(error){
+    console.error("Erro ao buscar clientes:", error);
+    return [];
+  }
+
+  return (data || [])
+    .filter(c => {
+      const nomeNorm  = normalizarTexto(c.nome || "");
+      const whatsNorm = normalizarTexto(c.whatsapp || "");
+      return nomeNorm.includes(termoNorm) || whatsNorm.includes(termoNorm);
+    })
+    .slice(0, 10);
+}
+
+  
+/* ================= SERVIÇOS ================= */
+async function carregarServicos(){
+const { data } = await sb
+  .from("produtos_servicos")
+  .select(`
+    id,
+    nome,
+    preco,
+    imagem_url,
+    duracao_minutos,
+    ordem_exibicao,
+    created_at,
+    updated_at
+  `)
+  .eq("user_id", lojaId)
+  .eq("ativo", true)
+  .eq("tipo", "SERVICO")
+  .not("duracao_minutos", "is", null)
+  .order("ordem_exibicao", { ascending: true, nullsLast: true })
+  .order("updated_at", { ascending: false })
+  .order("created_at", { ascending: true });
+
+
+
+const container = document.getElementById("services");
+const lista = data || [];
+
+container.innerHTML = lista.map(s => `
+  <div class="service"
+       data-id="${s.id}"
+       onclick="selecionarServico(
+         '${s.id}',
+         ${s.duracao_minutos},
+         '${s.nome}',
+         ${Number(s.preco)}
+       )">
+       
+    <img src="${s.imagem_url || 'https://via.placeholder.com/400'}">
+    <div class="service-info">
+      <div class="service-name">${s.nome}</div>
+      <div class="service-price">R$ ${formatarMoedaBR(s.preco)}</div>
+    </div>
+  </div>
+`).join("");
+
+
+  // ✅ SE VEIO SERVIÇO PELA URL, JÁ SELECIONA AUTOMATICAMENTE
+  if(servicoPreSelecionado){
+    const s = data.find(x => x.id === servicoPreSelecionado);
+    if(s){
+selecionarServico(
+  s.id,
+  s.duracao_minutos,
+  s.nome,
+  Number(s.preco)
+);
+    }
+  }
+}
+
+
+
+  
+function formatarDia(dataISO){
+  const [ano, mes, dia] = dataISO.split("-");
+  return Number(dia);
+}
+
+function diaSemana(dataISO){
+  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const [ano, mes, dia] = dataISO.split("-");
+  const d = new Date(ano, mes - 1, dia);
+  return dias[d.getDay()];
+}
+function addDias(data, qtd){
+  const d = new Date(data);
+  d.setDate(d.getDate() + qtd);
+  return d.toISOString().split("T")[0];
+}
+
+async function carregarDiasLazy(){
+
+  if(carregandoDias) return;
+  carregandoDias = true;
+
+  const inicio = cursorData || hojeLocal();
+  const fim = addDias(inicio, BLOCO_DIAS);
+
+  const { data: agenda } = await sb
+    .from("agenda_loja")
+    .select("*")
+    .eq("user_id", lojaId)
+    .eq("fechado", false)
+    .gte("data", inicio)
+    .lte("data", fim)
+    .order("data");
+
+  for(const d of agenda){
+
+    let blocos;
+    try{
+      blocos = typeof d.horarios === "string"
+        ? JSON.parse(d.horarios)
+        : d.horarios;
+    }catch{ continue }
+
+    const { data: ags } = await sb
+      .from("agendamentos")
+      .select("hora_inicio,hora_fim")
+      .eq("user_id", lojaId)
+      .eq("data", d.data);
+
+    const ocupados = ags.map(a => [
+      toMin(a.hora_inicio),
+      toMin(a.hora_fim)
+    ]);
+
+    let livre = false;
+
+    blocos.forEach(b=>{
+      let s = toMin(b.inicio);
+      let e = toMin(b.fim);
+
+while(s + duracaoTotal <= e){
+  const conflito = ocupados.some(o =>
+    !(s + duracaoTotal <= o[0] || s >= o[1])
+  );
+
+  if(!conflito){
+    livre = true;
+    break;
+  }
+
+  s += duracaoTotal;
+}
+
+    });
+
+    if(livre){
+      DIAS_VALIDOS.push(d);
+      renderizarDia(d, DIAS_VALIDOS.length - 1);
+    }
+  }
+
+  cursorData = addDias(fim, 1);
+  carregandoDias = false;
+}
+function renderizarDia(d, index){
+  document.getElementById("days")
+    .insertAdjacentHTML("beforeend", `
+      <div class="item" onclick="selecionarDia(${index})">
+        <div style="font-size:18px">${formatarDia(d.data)}</div>
+        <div style="font-size:12px;color:#6b7280">
+          ${diaSemana(d.data)}
+        </div>
+      </div>
+    `);
+}
+
+
+
+
+
+
+
+
+
+function selecionarServico(id, duracao, nome, preco){
+
+  const existe = dados.servicos.find(s => s.id === id);
+
+  if(existe){
+    // REMOVE
+    dados.servicos = dados.servicos.filter(s => s.id !== id);
+    document.querySelector(`[data-id="${id}"]`)
+      ?.classList.remove("selected");
+  }else{
+    // ADICIONA
+    dados.servicos.push({
+      id,
+      nome,
+      preco,
+      duracao
+    });
+    document.querySelector(`[data-id="${id}"]`)
+      ?.classList.add("selected");
+  }
+
+  renderizarSelecionados();
+}
+
+
+
+
+
+/* ================= DIA → HORÁRIOS ================= */
+async function selecionarDia(index){
+
+  /* ===== MARCA VISUAL DO DIA ===== */
+  document.querySelectorAll("#days .item")
+    .forEach(el => el.classList.remove("selected"));
+
+  const itemSelecionado =
+    document.querySelectorAll("#days .item")[index];
+
+  if(itemSelecionado){
+    itemSelecionado.classList.add("selected");
+  }
+
+  /* ===== MOSTRA SEÇÃO DE HORÁRIOS ===== */
+  document.getElementById("secTimes").classList.remove("hidden");
+
+  /* ===== FEEDBACK DE CARREGAMENTO ===== */
+  document.getElementById("times").innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
+      🔄 Buscando horários disponíveis...
+    </div>
+  `;
+
+  /* ===== DADOS DO DIA ===== */
+  const dia = DIAS_VALIDOS[index];
+  dados.data = dia.data;
+
+  /* ===== HORÁRIOS DA AGENDA ===== */
+  const blocos = typeof dia.horarios === "string"
+    ? JSON.parse(dia.horarios)
+    : dia.horarios;
+
+  /* ===== AGENDAMENTOS JÁ OCUPADOS ===== */
+  const { data: ag } = await sb
+    .from("agendamentos")
+    .select("hora_inicio,hora_fim")
+    .eq("user_id", lojaId)
+    .eq("data", dia.data);
+
+  const ocupados = ag.map(a => [
+    toMin(a.hora_inicio),
+    toMin(a.hora_fim)
+  ]);
+
+  /* ===== GERA SLOTS LIVRES ===== */
+  let slots = [];
+
+  blocos.forEach(b => {
+    let inicio = toMin(b.inicio);
+    let fim = toMin(b.fim);
+
+while(inicio + duracaoTotal <= fim){
+      const conflito = ocupados.some(o =>
+!(inicio + duracaoTotal <= o[0] || inicio >= o[1])
+      );
+
+      if(!conflito){
+        slots.push(toHour(inicio));
+      }
+
+inicio += duracaoTotal;    }
+  });
+
+  /* ===== RENDERIZA HORÁRIOS ===== */
+  if(slots.length === 0){
+    document.getElementById("times").innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;color:#6b7280;padding:14px">
+        ❌ Nenhum horário disponível neste dia
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById("times").innerHTML = slots.map(h => `
+<div class="item" onclick="selecionarHorario(this,'${h}')">${h}</div>
+  `).join("");
+}
+
+
+
+(async ()=>{
+  await verificarLogin();
+  await carregarCliente(); // não mexe no fluxo do cliente final
+  carregarServicos();
+
+  // 🔥 SE VEIO DO PAINEL DA LOJA, abre o modal de cliente logo ao entrar
+  if(modoNovoPainel){
+    abrirModal();
+  }
+})();
+
+  
+function fecharOverlay(){
+  document.getElementById("overlayConfirm")?.remove();
+}
+
+function irParaAgendamentos(){
+  // ajuste a rota se necessário
+  window.location.href = "agendamentosclientes.html?l=" + lojaId;
+}
+document.getElementById("days").addEventListener("scroll", e=>{
+  const el = e.target;
+  if(el.scrollLeft + el.clientWidth >= el.scrollWidth - 50){
+    carregarDiasLazy();
+  }
+});
+
+function getCliente(){
+
+  // 1️⃣ Cliente logado → SEMPRE do banco
+  if(clienteDB?.whatsapp){
+    return {
+      nome: clienteDB.nome,
+      whatsapp: clienteDB.whatsapp,
+      email: clienteDB.email || usuarioLogado.email
+    };
+  }
+
+  // 2️⃣ Cliente público (sem login)
+  try{
+    const raw = localStorage.getItem("CLIENTE_LOJA");
+    if(!raw) return null;
+
+    const c = JSON.parse(raw);
+    if(!c?.whatsapp) return null;
+
+    return {
+      nome: c.nome,
+      whatsapp: c.whatsapp,
+      email: c.email || null
+    };
+  }catch{
+    return null;
+  }
+}
+
+function clienteValido(){
+  const c = getCliente();
+  return !!(c?.nome && c?.whatsapp);
+}
+
+function abrirModal(){
+  // 🚫 NUNCA abre no app do cliente
+  if(!modoNovoPainel) return;
+
+  // 🚫 cliente final logado nunca vê modal
+  if(usuarioLogado && clienteDB?.whatsapp) return;
+
+  const modal = document.getElementById("clienteModal");
+  if(!modal || !modal.classList.contains("hidden")) return;
+
+  cliNome.value = "";
+  cliWhats.value = "";
+  cliEmail.value = "";
+  clienteDB = null;
+
+  modal.classList.remove("hidden");
+
+  setTimeout(ativarBuscaClientes, 0);
+}
+
+function fecharModal(){
+  const modal = document.getElementById("clienteModal");
+  if(!modal) return;
+
+  modal.classList.add("hidden");
+  modal.style.pointerEvents = "none";   // 🔥 bloqueia clique residual
+
+  setTimeout(() => {
+    modal.style.pointerEvents = "auto"; // libera depois
+  }, 300);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const whatsInput = document.getElementById("cliWhats");
+  if(!whatsInput) return;
+
+  whatsInput.addEventListener("input", () => {
+    let v = whatsInput.value.replace(/\D/g,"").slice(0,11);
+    if(v.length > 6)
+      v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+    else if(v.length > 2)
+      v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+    whatsInput.value = v;
+  });
+});
+
+
+let salvandoCliente = false;
+
+async function salvarCliente(confirmarDepois = false){
+  if (salvandoCliente) return;
+  salvandoCliente = true;
+
+  const btns = document.querySelectorAll('#clienteModal button');
+  btns.forEach(b => {
+    b.disabled = true;
+    b.style.opacity = .7;
+  });
+
+  try{
+    const nome = cliNome.value.trim().toUpperCase();
+    const whats = cliWhats.value.replace(/\D/g,"");
+    const email = cliEmail.value.trim() || null;
+
+    if(nome.length < 3 || whats.length < 10){
+      alert("Informe nome completo e WhatsApp válido");
+      return;
+    }
+
+    await sb.from("clientes_profile").upsert({
+      id: usuarioLogado?.id || lojaId + "_" + Date.now(),
+      nome,
+      whatsapp: whats,
+      email,
+      loja_ativa: lojaId
+    });
+
+    clienteDB = { nome, whatsapp: whats, email };
+
+    fecharModal(); // ✅ fecha só depois de salvar
+
+    if(confirmarDepois && dados?.hora){
+      setTimeout(() => confirmarAgendamento(), 120);
+    }
+
+  } catch(e){
+    console.error(e);
+    alert("Erro ao salvar cliente. Tente novamente.");
+  } finally {
+    btns.forEach(b => {
+      b.disabled = false;
+      b.style.opacity = 1;
+    });
+    salvandoCliente = false;
+  }
+}
+
+async function confirmar(h){
+
+  const cliente = getCliente();
+
+if(!cliente?.whatsapp){
+  if(modoNovoPainel){
+    abrirModal();   // só abre no painel da loja
+  }else{
+    alert("Preencha seus dados para confirmar o agendamento.");
+  }
+  return;
+}
+const fim = toHour(toMin(h) + duracaoTotal);
+
+  // 🔁 DEFINE ENDPOINT CORRETO
+  const endpoint = alterarId
+    ? "/api/update-agendamento"
+    : "/api/create-agendamento";
+
+let payload;
+
+if(alterarId){
+  payload = {
+    agendamento_id: alterarId,
+    loja_id: lojaId,
+    novo_status: "ALTERADO",
+
+    servicos: dados.servicos,
+    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+    duracao_total: duracaoTotal,
+
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    motivo: "ALTERACAO_CLIENTE"
+  };
+}else{
+  payload = {
+    loja_id: lojaId,
+
+    servicos: dados.servicos,
+    valor_total: dados.servicos.reduce((s,x)=>s + x.preco, 0),
+    duracao_total: duracaoTotal,
+
+    data: dados.data,
+    hora_inicio: h,
+    hora_fim: fim,
+
+    cliente_nome: cliente.nome,
+    cliente_whatsapp: cliente.whatsapp,
+    cliente_email: cliente.email || null,
+    cliente_id: usuarioLogado?.id || null
+  };
+}
+
+  let response;
+
+  try{
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }catch(err){
+    console.error("❌ ERRO DE REDE:", err);
+    alert("❌ Falha de conexão com o servidor");
+    return;
+  }
+
+  if(!response.ok){
+    const erro = await response.text();
+    console.error("❌ ERRO API:", erro);
+    alert("❌ Erro ao salvar agendamento");
+    return;
+  }
+
+document.body.insertAdjacentHTML("beforeend", `
+  <div class="overlay" id="overlayConfirm">
+    <div class="msg-final" style="
+      max-width:420px;
+      text-align:left;
+      animation: fadeUp .3s ease;
+    ">
+
+      <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+        margin-bottom:14px;
+        font-size:18px;
+      ">
+        <span style="
+          display:inline-flex;
+          width:28px;
+          height:28px;
+          border-radius:50%;
+          background:#dcfce7;
+          color:#166534;
+          align-items:center;
+          justify-content:center;
+          font-weight:900;
+        ">✓</span>
+
+        <strong>
+          ${alterarId ? "Agendamento atualizado!" : "Agendamento confirmado!"}
+        </strong>
+      </div>
+
+      <div style="font-size:14px;line-height:1.6;color:#374151">
+        <div><b>Serviços:</b> ${dados.servicos.map(s => s.nome).join(", ")}</div>
+        <div><b>Data:</b> ${formatarDataBR(dados.data)}</div>
+        <div><b>Horário:</b> ${h}</div>
+      </div>
+
+      <div style="
+        display:flex;
+        gap:12px;
+        margin-top:18px
+      ">
+        <button onclick="irParaAgendamentos()" style="
+          flex:1;
+          background:#2563eb;
+          color:#fff;
+          border-radius:14px;
+        ">
+          📋 Meus Agendamentos
+        </button>
+
+        <button onclick="fecharOverlay()" style="
+          flex:1;
+          background:#f3f4f6;
+          border-radius:14px;
+        ">
+          ✖ Fechar
+        </button>
+      </div>
+    </div>
+  </div>
+`);
+
+// 🧹 LIMPA CLIENTE ATIVO NO PAINEL DA LOJA (após confirmar)
+if (modoNovoPainel) {
+  clienteDB = null;
+  try { localStorage.removeItem("CLIENTE_LOJA"); } catch {}
+}
+}
+
+function selecionarHorario(el, h){
+
+  document.querySelectorAll("#times .item")
+    .forEach(i => i.classList.remove("selected"));
+
+  el.classList.add("selected");
+
+  dados.hora = h;
+
+  // ✅ mostra botão de confirmação
+  mostrarBotaoConfirmar();
+
+  // 🔽 rola suavemente até o botão Confirmar
+  document.getElementById("secConfirmar")
+    .scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function mostrarBotaoConfirmar(){
+  document.getElementById("secConfirmar").classList.remove("hidden");
+}
+
+
+function renderizarSelecionados(){
+
+  const sec = document.getElementById("secSelecionados");
+  const container = document.getElementById("servicosSelecionados");
+  const contador = document.getElementById("contadorServicos");
+  const totalEl = document.getElementById("totalServicos");
+  const btnVerDatas = document.querySelector(".btn-ver-datas");
+
+  if(dados.servicos.length === 0){
+    sec.classList.add("hidden");
+
+    document.getElementById("secDays").classList.add("hidden");
+    document.getElementById("secTimes").classList.add("hidden");
+    document.getElementById("secConfirmar").classList.add("hidden");
+    dados.hora = null;
+
+    document.getElementById("days").innerHTML = "";
+    document.getElementById("times").innerHTML = "";
+
+    DIAS_VALIDOS = [];
+    cursorData = null;
+    carregandoDias = false;
+    duracaoTotal = 0;
+
+    container.innerHTML = "";
+    if(contador) contador.innerText = "";
+    if(totalEl) totalEl.innerText = "";
+    if(btnVerDatas) btnVerDatas.disabled = true;
+
+    return;
+  }
+
+  sec.classList.remove("hidden");
+
+  // 🧮 total + contador
+  const total = dados.servicos.reduce((s, x) => s + x.preco, 0);
+  if(contador) contador.innerText = `${dados.servicos.length} serviço(s) selecionado(s)`;
+  if(totalEl) totalEl.innerText = `Total: R$ ${formatarMoedaBR(total)}`;
+
+  // 🎨 chips premium
+  container.innerHTML = dados.servicos.map(s => `
+    <div class="chip-servico">
+      <span>${s.nome}</span>
+      <span class="preco">R$ ${formatarMoedaBR(s.preco)}</span>
+      <button onclick="removerServico('${s.id}')" aria-label="Remover ${s.nome}">✕</button>
+    </div>
+  `).join("");
+
+  if(btnVerDatas) btnVerDatas.disabled = false;
+
+  // 🔥 reseta datas/horários ao mudar serviços
+  document.getElementById("secDays").classList.add("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+
+  DIAS_VALIDOS = [];
+  cursorData = null;
+  carregandoDias = false;
+
+  // ⏱️ duração total
+  duracaoTotal = dados.servicos.reduce((s, x) => s + x.duracao, 0);
+}
+function removerServico(id){
+  dados.servicos = dados.servicos.filter(s => s.id !== id);
+  document.querySelector(`[data-id="${id}"]`)
+    ?.classList.remove("selected");
+  renderizarSelecionados();
+}
+function confirmarServicos(){
+
+  if(dados.servicos.length === 0){
+    alert("Selecione ao menos um serviço");
+    return;
+  }
+
+  // 🔥 ESCONDE CONFIRMAÇÃO AO RECOMEÇAR
+  document.getElementById("secConfirmar").classList.add("hidden");
+  dados.hora = null;
+
+  document.getElementById("secDays").classList.remove("hidden");
+  document.getElementById("secTimes").classList.add("hidden");
+  document.getElementById("days").innerHTML = "";
+  document.getElementById("times").innerHTML = "";
+
+  DIAS_VALIDOS = [];
+  cursorData = null;
+  carregandoDias = false;
+
+  carregarDiasLazy();
+}
+
+async function confirmarAgendamento(){
+
+  if(confirmandoAgendamento) return;   // 🛑 bloqueia duplo clique
+  confirmandoAgendamento = true;
+
+  if(!dados.hora){
+    alert("Selecione um horário");
+    confirmandoAgendamento = false;
+    return;
+  }
+
+  // 🔒 BLOQUEIA A TELA
+  document.body.insertAdjacentHTML("beforeend", `
+    <div class="overlay" id="overlayLoading">
+      <div class="msg-final">
+        ⏳ Confirmando agendamento...
+      </div>
+    </div>
+  `);
+
+  const btn = document.getElementById("btnConfirmar");
+  btn.disabled = true;
+  btn.innerText = "Aguarde...";
+
+  try{
+    await confirmar(dados.hora);
+  } finally {
+    document.getElementById("overlayLoading")?.remove();
+    btn.disabled = false;
+    btn.innerText = "Confirmar agendamento";
+    confirmandoAgendamento = false; // 🔓 libera novamente
+  }
+}
+
+function formatarDataBR(dataISO){
+  if(!dataISO) return "";
+  const [ano, mes, dia] = dataISO.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function formatarMoedaBR(valor){
+  return Number(valor).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+
+
+function ativarBuscaClientes(){
+  const buscaInput = document.getElementById("buscaCliente");
+  const lista = document.getElementById("listaClientes");
+
+  if (!buscaInput || !lista) return;
+
+  // 🔒 evita múltiplos listeners ao abrir o modal várias vezes
+  if (buscaInput.dataset.bound === "1") return;
+  buscaInput.dataset.bound = "1";
+
+  let timer = null;
+
+  buscaInput.addEventListener("input", () => {
+    clearTimeout(timer);
+    const termo = buscaInput.value.trim();
+
+    timer = setTimeout(async () => {
+      if (termo.length < 2) {
+        lista.style.display = "none";
+        return;
+      }
+
+      const clientes = await buscarClientesLoja(termo);
+
+      if (!clientes.length) {
+        lista.innerHTML = `
+          <div style="padding:10px;color:#6b7280">
+            Nenhum cliente encontrado — você pode cadastrar
+          </div>
+        `;
+        lista.style.display = "block";
+        return;
+      }
+
+      lista.innerHTML = clientes.map(c => `
+        <div onclick="selecionarClienteLoja(
+          '${c.id}',
+          '${c.nome}',
+          '${c.whatsapp}',
+          '${c.email || ""}'
+        )"
+        style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee">
+          <strong>${c.nome}</strong><br>
+          <small>${c.whatsapp}</small>
+        </div>
+      `).join("");
+
+      lista.style.display = "block";
+    }, 300);
+  });
+}
+function selecionarClienteLoja(id, nome, whatsapp, email){
+  cliNome.value = nome;
+  cliWhats.value = whatsapp;
+  cliEmail.value = email || "";
+
+  clienteDB = { id, nome, whatsapp, email };
+
+  const lista = document.getElementById("listaClientes");
+  if(lista) lista.style.display = "none";
+
+  document.getElementById("buscaCliente").value = nome;
+
+  fecharModal(); // ✅ FECHA O POP-UP AO ESCOLHER O CLIENTE
+
+  // 👉 Se já tiver horário escolhido, continua o fluxo automaticamente
+  if(dados?.hora){
+    confirmarAgendamento();
+  }
+}
+
+
+function normalizarTexto(str = ""){
+  return str
+    .toLowerCase()
+    .normalize("NFD")                 // separa acentos (é -> e +  ́)
+    .replace(/[\u0300-\u036f]/g, "")  // remove os acentos
+    .replace(/[^a-z0-9]/g, "");       // remove espaço e símbolos
+}  
+
+document.addEventListener("DOMContentLoaded", () => {
+  if(!modoNovoPainel){
+    const modal = document.getElementById("clienteModal");
+    if(modal){
+      modal.classList.add("hidden");
+      modal.style.display = "none";
+    }
+  }
+});
+</script>
+<!-- MODAL CLIENTE (PREMIUM CENTRALIZADO) -->
+<div id="clienteModal" class="hidden modal-root">
+
+  <div class="modal-overlay" onclick="fecharModal()"></div>
+
+  <div class="modal-card">
+
+    <div class="modal-header">
+      <div class="modal-avatar">👤</div>
+      <div>
+        <h2 style="margin:0;font-size:18px">Dados do cliente</h2>
+        <small style="color:#6b7280">Preencha para confirmar o agendamento</small>
+      </div>
+    </div>
+
+    <!-- 🔎 BUSCAR CLIENTE DA LOJA -->
+    <div style="margin-bottom:10px">
+      <input id="buscaCliente" placeholder="🔎 Buscar cliente por nome ou WhatsApp"
+        style="width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);font-weight:700">
+
+      <div id="listaClientes" style="
+        margin-top:6px;
+        border-radius:12px;
+        background:#fff;
+        box-shadow:0 10px 24px rgba(0,0,0,.15);
+        overflow:hidden;
+        display:none;
+        max-height:220px;
+        overflow:auto;
+      "></div>
+    </div>
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">Nome completo</label>
+    <input id="cliNome" placeholder="Ex: João da Silva"
+      style="width:100%;margin:6px 0 10px;padding:12px;border-radius:14px;border:1px solid var(--border);font-weight:700;text-transform:uppercase">
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">WhatsApp</label>
+    <input id="cliWhats" placeholder="(77) 99999-9999" inputmode="numeric"
+      style="width:100%;margin:6px 0 10px;padding:12px;border-radius:14px;border:1px solid var(--border);font-weight:700">
+
+    <label style="font-size:12px;color:#6b7280;font-weight:700">E-mail (opcional)</label>
+    <input id="cliEmail" placeholder="email@exemplo.com"
+      style="width:100%;margin:6px 0 4px;padding:12px;border-radius:14px;border:1px solid var(--border);font-weight:700">
+
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="salvarCliente(true)">
+        💾 Salvar
+      </button>
+
+      <button class="btn-secondary" onclick="fecharModal()">
+        Cancelar
+      </button>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
